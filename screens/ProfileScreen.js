@@ -75,13 +75,23 @@ const ProfileScreen = () => {
         onChangeText={setName}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Bio"
-        value={bio}
-        onChangeText={setBio}
-        multiline
-      />
+<TextInput
+  style={styles.input}
+  placeholder="Bio"
+  value={bio}
+  onChangeText={setBio}
+  multiline={true}  
+  numberOfLines={4}  
+  returnKeyType="done"  
+  blurOnSubmit={true}  
+  onKeyPress={({ nativeEvent }) => {
+    if (nativeEvent.key === 'Enter') {
+      Keyboard.dismiss();  // ✅ Close keyboard when Enter is pressed
+      handleSaveProfile(); // ✅ Auto-save when Enter is pressed
+    }
+  }}
+/>
+
 
       
 

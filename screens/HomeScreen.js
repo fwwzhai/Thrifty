@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { Alert } from 'react-native'; 
+
 
 const HomeScreen = ({ navigation, route }) => {
   const [listings, setListings] = useState([]);
@@ -23,6 +26,19 @@ const HomeScreen = ({ navigation, route }) => {
 
     fetchListings();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      Alert.alert('Logged Out', 'You have been logged out.');
+      navigation.navigate('Login'); // ✅ Use navigate instead of replace
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+  
+
+  
 
   return (
     <View style={styles.container}>
@@ -50,6 +66,11 @@ const HomeScreen = ({ navigation, route }) => {
     <Text style={styles.profileButtonText}>Edit Profile</Text>
     </TouchableOpacity>
 
+      
+    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+    <Text style={styles.logoutButtonText}>Log Out</Text>
+  </TouchableOpacity>
+
     </View>
 
     
@@ -57,6 +78,10 @@ const HomeScreen = ({ navigation, route }) => {
 
   
 };
+
+
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -97,6 +122,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   profileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  logoutButton: {
+    backgroundColor: '#FF4500',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  logoutButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
