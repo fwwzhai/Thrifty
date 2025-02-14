@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { auth } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -9,10 +10,24 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert('Success', 'Logged in successfully!');
-      // Navigate to Home screen (You can change this later)
-      navigation.navigate('Home'); 
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Fetch user details from Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        console.log("User Data:", userData);
+        Alert.alert('Success', `Welcome back, ${userData.name}!`);
+        
+        // Navigate to Home screen (or Profile screen if needed)
+        navigation.navigate('Home', { userData }); 
+      } else {
+        Alert.alert('Error', 'User data not found in Firestore.');
+      }
+
     } catch (error) {
       Alert.alert('Error', error.message);
     }
