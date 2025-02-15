@@ -6,9 +6,13 @@ import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ListingDetailsScreen from './screens/ListingDetailsScreen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import './firebaseConfig';
+import CreateListingScreen from './screens/CreateListingScreen';
+
+
 
 const Stack = createStackNavigator();
 
@@ -20,7 +24,9 @@ export default function App() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="CreateListing" component={CreateListingScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="ListingDetails" component={ListingDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

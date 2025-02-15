@@ -50,7 +50,8 @@ const HomeScreen = ({ navigation, route }) => {
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.listing} 
-            onPress={() => navigation.navigate('ListingDetails', { item })}
+            onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+
           >
             <Text style={styles.listingTitle}>{item.title}</Text>
             <Text>{item.price} MYR</Text>
@@ -58,9 +59,13 @@ const HomeScreen = ({ navigation, route }) => {
         )}
       />
 
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CreateListing')}>
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => navigation.navigate('CreateListing')}
+      >
         <Text style={styles.addButtonText}>+ Add Listing</Text>
       </TouchableOpacity>
+
 
         <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
     <Text style={styles.profileButtonText}>Edit Profile</Text>
