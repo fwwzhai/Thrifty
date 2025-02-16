@@ -4,6 +4,7 @@ import { auth, db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { Alert } from 'react-native'; 
+import { query, onSnapshot } from 'firebase/firestore';
 
 
 const HomeScreen = ({ navigation, route }) => {
@@ -11,21 +12,20 @@ const HomeScreen = ({ navigation, route }) => {
   const userData = route.params?.userData || {}; // Get user data from login
 
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "listings"));
-        const items = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setListings(items);
-      } catch (error) {
-        console.error("Error fetching listings:", error);
-      }
-    };
-
-    fetchListings();
+    const q = query(collection(db, "listings")); 
+  
+    // 🔥 Listen for real-time changes in Firestore
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setListings(items);
+    });
+  
+    return () => unsubscribe(); // ✅ Cleanup listener when component unmounts
   }, []);
+  
 
   const handleLogout = async () => {
     try {
@@ -45,19 +45,32 @@ const HomeScreen = ({ navigation, route }) => {
       <Text style={styles.welcome}>Welcome, {userData.name}!</Text>
 
       <FlatList
-        data={listings}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-         <TouchableOpacity 
-          style={styles.listing} 
-          onPress={() => navigation.navigate('ListingDetails', { listing: item })}
-        >
-          <Text style={styles.listingTitle}>{item.name}</Text>
-          <Text>{item.price} MYR</Text>
-        </TouchableOpacity>
+  data={listings}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <TouchableOpacity 
+      style={styles.listing} 
+      onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+    >
+      {/* 🔥 Display Item Name & Price */}
+      
+      <Text style={styles.listingTitle}>{item.name}</Text>
+      <Text> RM {item.price}</Text>
 
-        )}
-      />
+      
+      {/* 🔥 Show Seller's Name */}
+      <Text>Seller: {item.sellerName ? item.sellerName : 'Unknown'}</Text>
+
+      {/* 🔥 View Profile Button */}
+      <TouchableOpacity 
+        style={styles.profileButton} 
+        onPress={() => navigation.navigate('UserProfile', { userId: item.userId })}
+      >
+        <Text style={styles.profileButtonText}>View Seller Profile</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  )}
+/>
 
       <TouchableOpacity 
         style={styles.addButton} 
@@ -68,7 +81,7 @@ const HomeScreen = ({ navigation, route }) => {
 
 
         <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
-    <Text style={styles.profileButtonText}>Edit Profile</Text>
+    <Text style={styles.profileButtonText}>Profile</Text>
     </TouchableOpacity>
 
       

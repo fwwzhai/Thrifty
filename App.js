@@ -11,8 +11,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import './firebaseConfig';
 import CreateListingScreen from './screens/CreateListingScreen';
-
-
+import UserProfileScreen from './screens/UserProfileScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +27,9 @@ export default function App() {
         <Stack.Screen name="CreateListing" component={CreateListingScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="ListingDetails" component={ListingDetailsScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

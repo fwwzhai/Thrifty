@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { db, auth } from '../firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
-import { storage } from '../firebaseConfig'; // Import Firebase Storage
+import { db, auth, storage } from '../firebaseConfig'; // Import Firebase Storage
+import { getDoc, doc, collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImageManipulator from 'expo-image-manipulator';
-import * as FileSystem from 'expo-file-system';
 
 const CreateListingScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
@@ -14,8 +12,9 @@ const CreateListingScreen = ({ navigation }) => {
   const [price, setPrice] = useState('');
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
+  const [uploading, setUploading] = useState(false);
 
-  // Function to pick an image
+  // 🔥 Function to pick an image
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -23,54 +22,81 @@ const CreateListingScreen = ({ navigation }) => {
       aspect: [4, 3],
       quality: 1,
     });
-  
+
     if (!result.canceled) {
-      const selectedUri = result.assets[0].uri;
-      setImage(selectedUri); // ✅ Update UI
+      setImage(result.assets[0].uri); // ✅ Update UI
     }
   };
-  
+
+  // 🔥 Function to upload image to Firebase Storage
+  const uploadImage = async (uri) => {
+    try {
+      setUploading(true);
+
+      // 🔥 Compress Image Before Upload
+      const compressedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      // 🔥 Convert Image URI to Blob
+      const response = await fetch(compressedImage.uri);
+      const blob = await response.blob();
+
+      // 🔥 Upload to Firebase Storage
+      const filename = `listings/${auth.currentUser.uid}_${Date.now()}.jpg`;
+      const storageRef = ref(storage, filename);
+
+      await uploadBytes(storageRef, blob);
+
+      // 🔥 Get Image URL
+      const downloadURL = await getDownloadURL(storageRef);
+      setUploading(false);
+      return downloadURL;
+
+    } catch (error) {
+      console.error("🔥 Image Upload Error:", error);
+      Alert.alert('Error', 'Failed to upload image.');
+      setUploading(false);
+      return null;
+    }
+  };
+
   const handleAddListing = async () => {
     if (!itemName || !image || !price || !type || !description) {
       Alert.alert('Error', 'Please fill all fields and select an image.');
       return;
     }
-  
+
     const user = auth.currentUser;
     if (!user) {
       Alert.alert('Error', 'User not authenticated.');
       return;
     }
-  
+
     try {
-      // 🔥 Step 1: Resize & Compress Image
-      const compressedImage = await ImageManipulator.manipulateAsync(
-        image,
-        [{ resize: { width: 100 } }], // ✅ Reduce width to 100px
-        { compress: 0.2, format: ImageManipulator.SaveFormat.JPEG } // ✅ Reduce quality to 20%
-      );
-      
-      
-  
-      // 🔥 Step 2: Convert to Base64
-      const base64 = await FileSystem.readAsStringAsync(compressedImage.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-  
-      // 🔥 Step 3: Create Base64 String for Firestore
-      const base64Image = `data:image/jpeg;base64,${base64}`;
-  
-      // 🔥 Step 4: Store in Firestore
+      // 🔥 Fetch User Data for Seller's Name
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      let sellerName = userSnap.exists() && userSnap.data().name ? userSnap.data().name : "Unknown Seller";
+
+      // 🔥 Upload Image to Firebase Storage
+      const imageUrl = await uploadImage(image);
+      if (!imageUrl) return; // Stop if upload fails
+
+      // 🔥 Store Listing in Firestore
       await addDoc(collection(db, 'listings'), {
         userId: user.uid,
+        sellerName,
         name: itemName,
-        imageBase64: base64Image, // ✅ Store Base64 instead of URL
+        imageUrl,  // ✅ Store Image URL (No more Base64)
         price,
         type,
         description,
         createdAt: new Date(),
       });
-  
+
       Alert.alert('Success', 'Listing added successfully!');
       navigation.goBack(); // ✅ Redirect back to Home
     } catch (error) {
@@ -78,6 +104,7 @@ const CreateListingScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to add listing.');
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Listing</Text>
@@ -117,7 +144,7 @@ const CreateListingScreen = ({ navigation }) => {
         multiline
       />
 
-      <Button title="Add Listing" onPress={handleAddListing} />
+      <Button title={uploading ? "Uploading..." : "Add Listing"} onPress={handleAddListing} disabled={uploading} />
     </View>
   );
 };

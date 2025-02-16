@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button, StyleSheet, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { auth, db } from '../firebaseConfig';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const ListingDetailsScreen = ({ navigation }) => {
   const route = useRoute();
   const { listing } = route.params || {}; // Ensure listing is not undefined
+  const [currentListing, setCurrentListing] = useState(listing);
 
-  if (!listing) {
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!listing.id) return;
+
+      try {
+        const listingRef = doc(db, "listings", listing.id);
+        const listingSnap = await getDoc(listingRef);
+
+        if (listingSnap.exists()) {
+          setCurrentListing(listingSnap.data());
+        }
+      } catch (error) {
+        console.error("🔥 Error fetching listing:", error);
+      }
+    };
+
+    fetchListing();
+  }, [listing.id]);
+
+  if (!currentListing) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error: Listing not found.</Text>
@@ -14,39 +36,64 @@ const ListingDetailsScreen = ({ navigation }) => {
     );
   }
 
-  const handleBuy = () => {
+  // 🔥 Buy Now Function (Updates Firestore)
+  const handleBuy = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to buy an item.');
+      return;
+    }
+
     Alert.alert('Purchase', 'Proceed to buy this item?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Buy', onPress: () => Alert.alert('Success', 'Purchase completed!') }
+      { 
+        text: 'Buy', 
+        onPress: async () => {
+          try {
+            const listingRef = doc(db, "listings", listing.id);
+            await updateDoc(listingRef, {
+              isSold: true,
+              buyerId: user.uid,
+            });
+
+            setCurrentListing(prev => ({ ...prev, isSold: true, buyerId: user.uid }));
+
+            Alert.alert('Success', 'Purchase completed!');
+            navigation.goBack(); // ✅ Go back after purchase
+          } catch (error) {
+            console.error("🔥 Error updating listing:", error);
+            Alert.alert("Error", "Failed to complete the purchase.");
+          }
+        }
+      }
     ]);
   };
-
-
-  console.log("🔥 Base64 Image Received:", listing.imageBase64 ? listing.imageBase64.substring(0, 100) + "..." : "No Image Found");
-  
-
 
   return (
     <View style={styles.container}>
       
-      {listing.imageBase64 ? (
+      {currentListing.imageUrl ? (
         <Image 
-          source={{ uri: listing.imageBase64 }} 
+          source={{ uri: currentListing.imageUrl }} 
           style={{ width: 200, height: 200, borderRadius: 10, marginBottom: 20 }} 
         />
       ) : (
         <Text>No Image Available</Text>
       )}
   
-      <Text style={styles.title}>{listing.name}</Text>
-      <Text style={styles.price}>Price: {listing.price} MYR</Text>
-      <Text style={styles.type}>Type: {listing.type}</Text>
-      <Text style={styles.description}>Description: {listing.description}</Text>
-      <Button title="Buy Now" onPress={handleBuy} />
+      <Text style={styles.title}>{currentListing.name}</Text>
+      <Text style={styles.price}>Price: {currentListing.price} MYR</Text>
+      <Text style={styles.type}>Type: {currentListing.type}</Text>
+      <Text style={styles.description}>Description: {currentListing.description}</Text>
+
+      {/* 🔥 Show "Buy Now" ONLY if not sold */}
+      {!currentListing.isSold ? (
+        <Button title="Buy Now" onPress={handleBuy} />
+      ) : (
+        <Text style={styles.soldText}>SOLD</Text>
+      )}
     </View>
   );
-  
-  
 };
 
 const styles = StyleSheet.create({
@@ -85,7 +132,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  soldText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'red',
+    marginTop: 10,
+  },
 });
-
 
 export default ListingDetailsScreen;
