@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig';
 
 const UserProfileScreen = ({ route, navigation }) => {
   const { userId } = route.params; // 🔥 Get userId from navigation params
@@ -52,6 +52,7 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* 🔥 Display User's Profile */}
       <Image source={{ uri: userData.profileImage }} style={styles.profileImage} />
       <Text style={styles.name}>{userData.name}</Text>
       <Text style={styles.bio}>{userData.bio}</Text>
@@ -66,8 +67,21 @@ const UserProfileScreen = ({ route, navigation }) => {
             style={styles.listing}
             onPress={() => navigation.navigate('ListingDetails', { listing: item })}
           >
+            {/* 🔥 Show Listing Image */}
+            {item.imageUrl ? (
+              <Image 
+                source={{ uri: item.imageUrl }} 
+                style={styles.listingImage} 
+              />
+            ) : (
+              <Text>No Image Available</Text>
+            )}
+
+            {/* 🔥 Show Listing Info */}
             <Text style={styles.listingTitle}>{item.name}</Text>
-            <Text>{item.price} MYR</Text>
+            <Text>RM {item.price}</Text>
+
+           
           </TouchableOpacity>
         )}
       />
@@ -110,6 +124,19 @@ const styles = StyleSheet.create({
   listingTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  listingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  viewProfileButton: {
+    backgroundColor: '#3396ff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    width: 180
   },
 });
 

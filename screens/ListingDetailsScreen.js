@@ -1,34 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button, StyleSheet, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, Image, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { auth, db } from '../firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const ListingDetailsScreen = ({ navigation }) => {
   const route = useRoute();
   const { listing } = route.params || {}; // Ensure listing is not undefined
-  const [currentListing, setCurrentListing] = useState(listing);
 
-  useEffect(() => {
-    const fetchListing = async () => {
-      if (!listing.id) return;
-
-      try {
-        const listingRef = doc(db, "listings", listing.id);
-        const listingSnap = await getDoc(listingRef);
-
-        if (listingSnap.exists()) {
-          setCurrentListing(listingSnap.data());
-        }
-      } catch (error) {
-        console.error("🔥 Error fetching listing:", error);
-      }
-    };
-
-    fetchListing();
-  }, [listing.id]);
-
-  if (!currentListing) {
+  if (!listing) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error: Listing not found.</Text>
@@ -50,13 +30,11 @@ const ListingDetailsScreen = ({ navigation }) => {
         text: 'Buy', 
         onPress: async () => {
           try {
-            const listingRef = doc(db, "listings", listing.id);
-            await updateDoc(listingRef, {
+            // ✅ Update Firestore to mark as SOLD
+            await updateDoc(doc(db, "listings", listing.id), {
               isSold: true,
               buyerId: user.uid,
             });
-
-            setCurrentListing(prev => ({ ...prev, isSold: true, buyerId: user.uid }));
 
             Alert.alert('Success', 'Purchase completed!');
             navigation.goBack(); // ✅ Go back after purchase
@@ -71,29 +49,42 @@ const ListingDetailsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      
-      {currentListing.imageUrl ? (
+      {/* 🔥 Display Listing Image */}
+      {listing.imageUrl ? (
         <Image 
-          source={{ uri: currentListing.imageUrl }} 
-          style={{ width: 200, height: 200, borderRadius: 10, marginBottom: 20 }} 
+          source={{ uri: listing.imageUrl }} 
+          style={styles.image} 
         />
       ) : (
         <Text>No Image Available</Text>
       )}
   
-      <Text style={styles.title}>{currentListing.name}</Text>
-      <Text style={styles.price}>Price: {currentListing.price} MYR</Text>
-      <Text style={styles.type}>Type: {currentListing.type}</Text>
-      <Text style={styles.description}>Description: {currentListing.description}</Text>
+      {/* 🔥 Display Item Info */}
+      <Text style={styles.title}>{listing.name}</Text>
+      <Text style={styles.price}>Price: {listing.price} MYR</Text>
+      <Text style={styles.type}>Type: {listing.type}</Text>
+      <Text style={styles.description}>Description: {listing.description}</Text>
+
+      {/* 🔥 Display Seller Name */}
+      <Text style={styles.sellerText}>Seller: {listing.sellerName ? listing.sellerName : "Unknown Seller"}</Text>
+
+      {/* 🔥 View Seller Profile Button */}
+      <TouchableOpacity 
+        style={styles.profileButton} 
+        onPress={() => navigation.navigate('UserProfile', { userId: listing.userId })}
+      >
+        <Text style={styles.profileButtonText}>View Seller Profile</Text>
+      </TouchableOpacity>
 
       {/* 🔥 Show "Buy Now" ONLY if not sold */}
-      {!currentListing.isSold ? (
+      {!listing.isSold ? (
         <Button title="Buy Now" onPress={handleBuy} />
       ) : (
         <Text style={styles.soldText}>SOLD</Text>
       )}
     </View>
   );
+
 };
 
 const styles = StyleSheet.create({
@@ -108,8 +99,8 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   image: {
-    width: 300,
-    height: 300,
+    width: 200,
+    height: 200,
     borderRadius: 10,
     marginBottom: 20,
   },
@@ -137,6 +128,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'red',
     marginTop: 10,
+  },
+  profileButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 15,
+  },
+  sellerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  profileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { Image, View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
@@ -43,7 +43,6 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>Welcome, {userData.name}!</Text>
-
       <FlatList
   data={listings}
   keyExtractor={(item) => item.id}
@@ -52,25 +51,28 @@ const HomeScreen = ({ navigation, route }) => {
       style={styles.listing} 
       onPress={() => navigation.navigate('ListingDetails', { listing: item })}
     >
+      {/* 🔥 Display Listing Image */}
+      {item.imageUrl ? (
+        <Image 
+          source={{ uri: item.imageUrl }} 
+          style={styles.listingImage} 
+        />
+      ) : (
+        <Text>No Image Available</Text> // Fallback if image is missing
+      )}
+
       {/* 🔥 Display Item Name & Price */}
-      
       <Text style={styles.listingTitle}>{item.name}</Text>
       <Text> RM {item.price}</Text>
 
-      
       {/* 🔥 Show Seller's Name */}
       <Text>Seller: {item.sellerName ? item.sellerName : 'Unknown'}</Text>
 
-      {/* 🔥 View Profile Button */}
-      <TouchableOpacity 
-        style={styles.profileButton} 
-        onPress={() => navigation.navigate('UserProfile', { userId: item.userId })}
-      >
-        <Text style={styles.profileButtonText}>View Seller Profile</Text>
-      </TouchableOpacity>
+      
     </TouchableOpacity>
   )}
 />
+
 
       <TouchableOpacity 
         style={styles.addButton} 
@@ -80,7 +82,7 @@ const HomeScreen = ({ navigation, route }) => {
       </TouchableOpacity>
 
 
-        <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
+      <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
     <Text style={styles.profileButtonText}>Profile</Text>
     </TouchableOpacity>
 
@@ -144,6 +146,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  profileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  viewProfileButton: {
+    backgroundColor: '#3396ff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    width: 180
+  },
+  listingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  
   
   logoutButton: {
     backgroundColor: '#FF4500',
@@ -156,6 +179,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+
   
 });
 

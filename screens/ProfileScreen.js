@@ -67,18 +67,30 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* 🔥 Show Listings */}
       <FlatList
-        data={userListings}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.listing} 
-            onPress={() => navigation.navigate('ListingDetails', { listing: item })}
-          >
-            <Text style={styles.listingTitle}>{item.name}</Text>
-            <Text>{item.price} MYR</Text>
-          </TouchableOpacity>
-        )}
-      />
+  data={userListings}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <TouchableOpacity 
+      style={styles.listing} 
+      onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+    >
+      {/* 🔥 Display Listing Image */}
+      {item.imageUrl ? (
+        <Image 
+          source={{ uri: item.imageUrl }} 
+          style={styles.listingImage} // ✅ Ensure you have this style
+        />
+      ) : (
+        <Text>No Image Available</Text> // Fallback if image is missing
+      )}
+
+      {/* 🔥 Display Item Name & Price */}
+      <Text style={styles.listingTitle}>{item.name}</Text>
+      <Text>RM {item.price}</Text>
+    </TouchableOpacity>
+  )}
+/>
+
     </View>
   );
 };
@@ -131,6 +143,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  listingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  
 });
 
 export default ProfileScreen;
