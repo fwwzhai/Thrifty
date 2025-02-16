@@ -21,16 +21,32 @@ const ListingDetailsScreen = ({ navigation }) => {
     ]);
   };
 
+
+  console.log("🔥 Base64 Image Received:", listing.imageBase64 ? listing.imageBase64.substring(0, 100) + "..." : "No Image Found");
+  
+
+
   return (
     <View style={styles.container}>
-      <Image source={{ uri: listing.imageUrl }} style={styles.image} />
+      
+      {listing.imageBase64 ? (
+        <Image 
+          source={{ uri: listing.imageBase64 }} 
+          style={{ width: 200, height: 200, borderRadius: 10, marginBottom: 20 }} 
+        />
+      ) : (
+        <Text>No Image Available</Text>
+      )}
+  
       <Text style={styles.title}>{listing.name}</Text>
-      <Text style={styles.price}>${listing.price}</Text>
+      <Text style={styles.price}>Price: {listing.price} MYR</Text>
       <Text style={styles.type}>Type: {listing.type}</Text>
-      <Text style={styles.description}>{listing.description}</Text>
+      <Text style={styles.description}>Description: {listing.description}</Text>
       <Button title="Buy Now" onPress={handleBuy} />
     </View>
   );
+  
+  
 };
 
 const styles = StyleSheet.create({
@@ -70,5 +86,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
+
 
 export default ListingDetailsScreen;

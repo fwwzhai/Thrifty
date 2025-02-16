@@ -48,14 +48,14 @@ const HomeScreen = ({ navigation, route }) => {
         data={listings}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.listing} 
-            onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+         <TouchableOpacity 
+          style={styles.listing} 
+          onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+        >
+          <Text style={styles.listingTitle}>{item.name}</Text>
+          <Text>{item.price} MYR</Text>
+        </TouchableOpacity>
 
-          >
-            <Text style={styles.listingTitle}>{item.title}</Text>
-            <Text>{item.price} MYR</Text>
-          </TouchableOpacity>
         )}
       />
 
@@ -90,7 +90,7 @@ const HomeScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 2,
     padding: 20,
     backgroundColor: '#fff',
   },

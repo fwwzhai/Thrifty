@@ -5,6 +5,8 @@ import { db, auth } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import { storage } from '../firebaseConfig'; // Import Firebase Storage
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 
 const CreateListingScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
@@ -21,39 +23,61 @@ const CreateListingScreen = ({ navigation }) => {
       aspect: [4, 3],
       quality: 1,
     });
-
+  
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const selectedUri = result.assets[0].uri;
+      setImage(selectedUri); // ✅ Update UI
     }
   };
-
-  // Function to upload listing data to Firestore
+  
   const handleAddListing = async () => {
     if (!itemName || !image || !price || !type || !description) {
       Alert.alert('Error', 'Please fill all fields and select an image.');
       return;
     }
-
+  
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert('Error', 'User not authenticated.');
+      return;
+    }
+  
     try {
-      const user = auth.currentUser;
+      // 🔥 Step 1: Resize & Compress Image
+      const compressedImage = await ImageManipulator.manipulateAsync(
+        image,
+        [{ resize: { width: 100 } }], // ✅ Reduce width to 100px
+        { compress: 0.2, format: ImageManipulator.SaveFormat.JPEG } // ✅ Reduce quality to 20%
+      );
+      
+      
+  
+      // 🔥 Step 2: Convert to Base64
+      const base64 = await FileSystem.readAsStringAsync(compressedImage.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+  
+      // 🔥 Step 3: Create Base64 String for Firestore
+      const base64Image = `data:image/jpeg;base64,${base64}`;
+  
+      // 🔥 Step 4: Store in Firestore
       await addDoc(collection(db, 'listings'), {
         userId: user.uid,
         name: itemName,
-        imageUrl: image,
+        imageBase64: base64Image, // ✅ Store Base64 instead of URL
         price,
         type,
         description,
         createdAt: new Date(),
       });
-
+  
       Alert.alert('Success', 'Listing added successfully!');
-      navigation.goBack(); // Redirect back to Home
+      navigation.goBack(); // ✅ Redirect back to Home
     } catch (error) {
-      console.error('Error adding listing:', error);
+      console.error('🔥 Error adding listing:', error);
       Alert.alert('Error', 'Failed to add listing.');
     }
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Listing</Text>
