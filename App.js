@@ -13,6 +13,7 @@ import './firebaseConfig';
 import CreateListingScreen from './screens/CreateListingScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
+import FilterScreen from './screens/FilterScreen';
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,7 @@ export default function App() {
         <Stack.Screen name="ListingDetails" component={ListingDetailsScreen} />
         <Stack.Screen name="UserProfile" component={UserProfileScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="FilterScreen" component={FilterScreen}/>
 
       </Stack.Navigator>
     </NavigationContainer>

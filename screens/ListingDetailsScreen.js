@@ -63,6 +63,7 @@ const ListingDetailsScreen = ({ navigation }) => {
       <Text style={styles.title}>{listing.name}</Text>
       <Text style={styles.price}>Price: {listing.price} MYR</Text>
       <Text style={styles.type}>Type: {listing.type}</Text>
+      <Text style={styles.condition}>Condition: {listing.condition}</Text>
       <Text style={styles.description}>Description: {listing.description}</Text>
 
       {/* 🔥 Display Seller Name */}

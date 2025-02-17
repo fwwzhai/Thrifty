@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect, useCallback } from 'react';
+
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
@@ -10,32 +12,35 @@ const ProfileScreen = ({ navigation }) => {
   const route = useRoute();
   const userId = route.params?.userId || auth.currentUser?.uid; // ✅ Show profile for current OR other users
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        // 🔥 Fetch User Data
-        const userDocRef = doc(db, "users", userId);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          setUserInfo(userDocSnap.data());
-        } else {
-          setUserInfo({ name: "Unknown", bio: "No bio available" });
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserProfile = async () => {
+        try {
+          // 🔥 Fetch User Data
+          const userDocRef = doc(db, "users", userId);
+          const userDocSnap = await getDoc(userDocRef);
+  
+          if (userDocSnap.exists()) {
+            setUserInfo(userDocSnap.data());
+          } else {
+            setUserInfo({ name: "Unknown", bio: "No bio available" });
+          }
+  
+          // 🔥 Fetch User's Listings
+          const listingsQuery = query(collection(db, "listings"), where("userId", "==", userId));
+          const listingsSnapshot = await getDocs(listingsQuery);
+          const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setUserListings(listingsData);
+  
+        } catch (error) {
+          console.error("🔥 Error fetching profile:", error);
         }
-
-        // 🔥 Fetch User's Listings
-        const listingsQuery = query(collection(db, "listings"), where("userId", "==", userId));
-        const listingsSnapshot = await getDocs(listingsQuery);
-        const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setUserListings(listingsData);
-
-      } catch (error) {
-        console.error("🔥 Error fetching profile:", error);
-      }
-    };
-
-    fetchUserProfile();
-  }, [userId]);
+      };
+  
+      fetchUserProfile();
+    }, [userId]) // ✅ Refresh data when userId changes
+  );
+  
 
   const handleEditProfile = () => {
     if (userId !== auth.currentUser?.uid) return; // ✅ Prevent editing another user's profile

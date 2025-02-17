@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { db, auth, storage } from '../firebaseConfig'; // Import Firebase Storage
+import { db, auth, storage } from '../firebaseConfig';
 import { getDoc, doc, collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as ImageManipulator from 'expo-image-manipulator';
+
+import ClothingPicker from './ClothingPicker'; // Adjust the path based on where the file is located
+import ConditionPicker from './ConditionPicker';
 
 const CreateListingScreen = ({ navigation }) => {
   const [image, setImage] = useState(null);
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
-  const [type, setType] = useState('');
+  const [type, setType] = useState(''); // 🔥 Clothing Type
+const [condition, setCondition] = useState(''); // 🔥 Condition
+
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  
   // 🔥 Function to pick an image
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -24,7 +30,7 @@ const CreateListingScreen = ({ navigation }) => {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri); // ✅ Update UI
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -33,28 +39,22 @@ const CreateListingScreen = ({ navigation }) => {
     try {
       setUploading(true);
 
-      // 🔥 Compress Image Before Upload
       const compressedImage = await ImageManipulator.manipulateAsync(
         uri,
         [{ resize: { width: 800 } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      // 🔥 Convert Image URI to Blob
       const response = await fetch(compressedImage.uri);
       const blob = await response.blob();
 
-      // 🔥 Upload to Firebase Storage
       const filename = `listings/${auth.currentUser.uid}_${Date.now()}.jpg`;
       const storageRef = ref(storage, filename);
 
       await uploadBytes(storageRef, blob);
-
-      // 🔥 Get Image URL
       const downloadURL = await getDownloadURL(storageRef);
       setUploading(false);
       return downloadURL;
-
     } catch (error) {
       console.error("🔥 Image Upload Error:", error);
       Alert.alert('Error', 'Failed to upload image.');
@@ -76,29 +76,28 @@ const CreateListingScreen = ({ navigation }) => {
     }
 
     try {
-      // 🔥 Fetch User Data for Seller's Name
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
       let sellerName = userSnap.exists() && userSnap.data().name ? userSnap.data().name : "Unknown Seller";
 
-      // 🔥 Upload Image to Firebase Storage
       const imageUrl = await uploadImage(image);
-      if (!imageUrl) return; // Stop if upload fails
+      if (!imageUrl) return;
 
-      // 🔥 Store Listing in Firestore
       await addDoc(collection(db, 'listings'), {
         userId: user.uid,
         sellerName,
         name: itemName,
-        imageUrl,  // ✅ Store Image URL (No more Base64)
+        imageUrl,
         price,
-        type,
+        type,       // ✅ Store clothing type
+        condition,  // ✅ Store condition
         description,
         createdAt: new Date(),
       });
+      
 
       Alert.alert('Success', 'Listing added successfully!');
-      navigation.goBack(); // ✅ Redirect back to Home
+      navigation.goBack();
     } catch (error) {
       console.error('🔥 Error adding listing:', error);
       Alert.alert('Error', 'Failed to add listing.');
@@ -130,18 +129,19 @@ const CreateListingScreen = ({ navigation }) => {
         onChangeText={setPrice}
         keyboardType="numeric"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Type"
-        value={type}
-        onChangeText={setType}
-      />
+<ConditionPicker condition={condition} setCondition={setCondition} />
+<ClothingPicker type={type} setType={setType} />
+
+
+
+
+
       <TextInput
         style={styles.input}
         placeholder="Short Description"
         value={description}
         onChangeText={setDescription}
-        multiline
+        
       />
 
       <Button title={uploading ? "Uploading..." : "Add Listing"} onPress={handleAddListing} disabled={uploading} />
@@ -183,6 +183,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
+  },
+  pickerContainer: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
+    backgroundColor: 'white',
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
 });
 
