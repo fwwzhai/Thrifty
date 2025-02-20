@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { auth, db } from '../firebaseConfig';
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 
 const UserProfileScreen = ({ route, navigation }) => {
-  const { userId } = route.params; // 🔥 Get userId from navigation params
+  const { userId } = route.params;
   const [userData, setUserData] = useState(null);
   const [userListings, setUserListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+const currentUser = auth.currentUser;
 
-  // Fetch user profile data
+
+  // 🔥 Fetch User Data
   useEffect(() => {
     const fetchUser = async () => {
       if (userId) {
@@ -21,12 +27,13 @@ const UserProfileScreen = ({ route, navigation }) => {
           console.log("❌ User not found");
         }
       }
+      setLoading(false);
     };
 
     fetchUser();
   }, [userId]);
 
-  // Fetch listings by user
+  // 🔥 Fetch User's Listings
   useEffect(() => {
     const fetchUserListings = async () => {
       if (userId) {
@@ -46,98 +53,239 @@ const UserProfileScreen = ({ route, navigation }) => {
     fetchUserListings();
   }, [userId]);
 
+  useEffect(() => {
+    const checkFollowing = async () => {
+      if (currentUser?.uid && userId) {
+        const followingRef = doc(db, "users", currentUser.uid, "following", userId);
+        const followingSnap = await getDoc(followingRef);
+        setIsFollowing(followingSnap.exists());
+      }
+    };
+    checkFollowing();
+  }, [currentUser, userId]);
+  
+  const handleFollow = async () => {
+    if (!currentUser) {
+      Alert.alert('Error', 'You must be logged in to follow.');
+      return;
+    }
+  
+    try {
+      // 🔥 Add to "following" of current user
+      await setDoc(doc(db, "users", currentUser.uid, "following", userId), {
+        userId: userId,
+        timestamp: new Date()
+      });
+  
+      // 🔥 Add to "followers" of the other user
+      await setDoc(doc(db, "users", userId, "followers", currentUser.uid), {
+        userId: currentUser.uid,
+        timestamp: new Date()
+      });
+  
+      setIsFollowing(true);
+      Alert.alert('Success', 'You are now following this user.');
+    } catch (error) {
+      console.error("🔥 Error following user:", error);
+      Alert.alert('Error', 'Failed to follow user.');
+    }
+  };
+  
+  const handleUnfollow = async () => {
+    if (!currentUser) {
+      Alert.alert('Error', 'You must be logged in to unfollow.');
+      return;
+    }
+  
+    try {
+      // 🔥 Remove from "following" of current user
+      await deleteDoc(doc(db, "users", currentUser.uid, "following", userId));
+  
+      // 🔥 Remove from "followers" of the other user
+      await deleteDoc(doc(db, "users", userId, "followers", currentUser.uid));
+  
+      setIsFollowing(false);
+      Alert.alert('Success', 'You have unfollowed this user.');
+    } catch (error) {
+      console.error("🔥 Error unfollowing user:", error);
+      Alert.alert('Error', 'Failed to unfollow user.');
+    }
+  };
+  
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
   if (!userData) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>User not found</Text>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      {/* 🔥 Display User's Profile */}
-      <Image source={{ uri: userData.profileImage }} style={styles.profileImage} />
-      <Text style={styles.name}>{userData.name}</Text>
-      <Text style={styles.bio}>{userData.bio}</Text>
-
-      <Text style={styles.listingsTitle}>Listings by {userData.name}</Text>
-
-      <FlatList
-        data={userListings}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.listing}
-            onPress={() => navigation.navigate('ListingDetails', { listing: item })}
-          >
-            {/* 🔥 Show Listing Image */}
-            {item.imageUrl ? (
-              <Image 
-                source={{ uri: item.imageUrl }} 
-                style={styles.listingImage} 
-              />
-            ) : (
-              <Text>No Image Available</Text>
-            )}
-
-            {/* 🔥 Show Listing Info */}
+    <FlatList
+      data={userListings}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={styles.listingCard}
+          onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+        >
+          {item.imageUrl ? (
+            <Image 
+              source={{ uri: item.imageUrl }} 
+              style={styles.listingImage} 
+            />
+          ) : (
+            <Text>No Image Available</Text>
+          )}
+          <View style={styles.listingDetails}>
             <Text style={styles.listingTitle}>{item.name}</Text>
-            <Text>RM {item.price}</Text>
+            <Text style={styles.listingPrice}>RM {item.price}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+      ListHeaderComponent={
+        
+        <View style={styles.profileHeader}>
+          
 
-           
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+          <Image 
+            source={{ uri: userData.profileImage }} 
+            style={styles.profileImage} 
+          />
+          <Text style={styles.name}>{userData.name}</Text>
+          <Text style={styles.bio}>{userData.bio}</Text>
+          {currentUser?.uid !== userId && (
+  <TouchableOpacity 
+    style={isFollowing ? styles.unfollowButton : styles.followButton} 
+    onPress={isFollowing ? handleUnfollow : handleFollow}
+  >
+    <Text style={isFollowing ? styles.unfollowButtonText : styles.followButtonText}>
+      {isFollowing ? 'Unfollow' : 'Follow'}
+    </Text>
+  </TouchableOpacity>
+)}
+          <Text style={styles.listingsTitle}>Listings by {userData.name}</Text>
+        </View>
+      }
+      contentContainerStyle={{ paddingBottom: 20 }}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    padding: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+  },
+  profileHeader: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#ddd',
   },
   name: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
+    color: '#333',
   },
   bio: {
     fontSize: 16,
+    color: '#555',
     textAlign: 'center',
-    marginTop: 5,
+    marginBottom: 10,
   },
   listingsTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#007bff',
     marginTop: 20,
     marginBottom: 10,
   },
-  listing: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+  listingCard: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 10,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  listingImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  listingDetails: {
+    flex: 1,
   },
   listingTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
   },
-  listingImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    marginBottom: 10,
+  listingPrice: {
+    fontSize: 16,
+    color: '#28a745',
+    fontWeight: '600',
   },
-  viewProfileButton: {
-    backgroundColor: '#3396ff',
+  followButton: {
+    backgroundColor: '#28a745',
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 25,
+    alignItems: 'center',
     marginTop: 10,
-    width: 180
   },
+  followButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  unfollowButton: {
+    backgroundColor: '#dc3545',
+    padding: 10,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  unfollowButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
 });
 
 export default UserProfileScreen;

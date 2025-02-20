@@ -14,7 +14,8 @@ import CreateListingScreen from './screens/CreateListingScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import FilterScreen from './screens/FilterScreen';
-
+import WishlistScreen from './screens/WishlistScreen';
+import FollowListScreen from './screens/FollowListScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -31,6 +32,13 @@ export default function App() {
         <Stack.Screen name="UserProfile" component={UserProfileScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="FilterScreen" component={FilterScreen}/>
+        <Stack.Screen 
+    name="Wishlist" 
+    component={WishlistScreen} 
+    options={{ title: 'My Wishlist' }} 
+  />
+  <Stack.Screen name="FollowList" component={FollowListScreen} />
+
 
       </Stack.Navigator>
     </NavigationContainer>

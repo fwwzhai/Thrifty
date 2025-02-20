@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   listingPrice: {
     fontSize: 16,
-    color: '#888',
+    color: '#28a745',
     marginBottom: 5,
   },
   listingSeller: {

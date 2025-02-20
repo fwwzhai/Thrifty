@@ -201,8 +201,8 @@ const toggleWishlist = async () => {
 )}
 
 
-          {/* 🔥 Display Seller Info */}
-          {sellerData && (
+       {/* 🔥 Display Seller Info */}
+       {sellerData && (
   <TouchableOpacity 
     style={styles.sellerContainer}
     onPress={() => navigation.navigate('UserProfile', { userId: listing.userId })}
@@ -214,6 +214,7 @@ const toggleWishlist = async () => {
     <Text style={styles.sellerName}>{sellerData.name}</Text>
   </TouchableOpacity>
 )}
+
 
           {/* 🔥 Show "Buy Now" ONLY if not sold */}
           {!listing.isSold ? (
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
   
   price: {
     fontSize: 22,
-    color: '#FF6F61',
+    color: '#28a745',
     fontWeight: 'bold',
     marginBottom: 10,
   },
