@@ -8,6 +8,7 @@ const FilterScreen = ({ navigation, route }) => {
   const [selectedTypes, setSelectedTypes] = useState(currentFilters.selectedTypes || []);
   const [selectedConditions, setSelectedConditions] = useState(currentFilters.selectedConditions || []);
   const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '');
+  const [selectedColors, setSelectedColors] = useState(currentFilters.selectedColors || []);
 
   // 🔥 Toggle Type Selection
   const toggleType = (type) => {
@@ -65,12 +66,41 @@ const FilterScreen = ({ navigation, route }) => {
         onChangeText={setMaxPrice} 
       />
 
+        {/* 🔹 Color Selection */}
+<Text style={styles.label}>Color:</Text>
+<View style={styles.grid}>
+  {[
+    "rgb(106, 84, 69)", 
+    "rgb(202, 189, 181)", 
+    "rgb(84, 78, 58)", 
+    "rgb(69, 64, 45)",
+    "rgb(34, 32, 18)",
+    "#627",
+    "#000000", // Black
+    "#FFFFFF"  // White
+  ].map(color => (
+    <TouchableOpacity 
+      key={color} 
+      style={[
+        styles.colorCircle, 
+        { backgroundColor: color },
+        selectedColors.includes(color) && styles.selectedColor
+      ]}
+      onPress={() => {
+        setSelectedColors(prev =>
+          prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+        );
+      }}
+    />
+  ))}
+</View>
+
       {/* 🔥 Apply Filters */}
       <TouchableOpacity 
         style={styles.applyButton} 
         onPress={() => {
             navigation.navigate('Home', { 
-              filters: { selectedTypes, selectedConditions, maxPrice }, 
+              filters: { selectedTypes, selectedConditions, selectedColors, maxPrice }, 
               userData: route.params?.userData  // 🔥 Preserve userData
             });
           }}
@@ -84,6 +114,7 @@ const FilterScreen = ({ navigation, route }) => {
         onPress={() => {
           setSelectedTypes([]);
           setSelectedConditions([]);
+          setSelectedColors([]);
           setMaxPrice('');
         }}
       >
@@ -117,6 +148,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
+  colorCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    margin: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  selectedColor: {
+    borderWidth: 3,
+    borderColor: '#000',
+  },
+  
   filterButton: {
     padding: 10,
     borderWidth: 1,
