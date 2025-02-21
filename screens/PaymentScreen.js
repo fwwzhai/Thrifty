@@ -41,14 +41,48 @@ const PaymentScreen = ({ route, navigation }) => {
         Alert.alert('Payment failed', error.message);
       } else if (paymentIntent) {
         Alert.alert('Payment successful', 'Your payment was successful!');
+        console.log('Payment successful:', paymentIntent);
   
         // 🔥 Update Firestore to mark the listing as SOLD
         const listingRef = doc(db, 'listings', listing.id);
         await updateDoc(listingRef, {
-          isSold: true
+          isSold: true,
+          soldTo: auth.currentUser.uid,  // 🔥 Save Buyer UID
+          soldAt: new Date().toISOString()
         });
+        console.log('Listing updated to SOLD');
   
-        // 🔥 Navigate back or update state
+        // 🔥 Save Purchase History for Buyer
+        const buyerHistoryRef = doc(db, 'users', auth.currentUser.uid, 'purchaseHistory', listing.id);
+        await setDoc(buyerHistoryRef, {
+          listingId: listing.id,
+          name: listing.name,
+          price: listing.price,
+          imageUrl: listing.imageUrl,
+          sellerId: listing.userId,
+          timestamp: new Date()
+        });
+        console.log('Purchase History updated for Buyer');
+  
+        // 🔥 Save Sold History for Seller
+        // 🔥 Save Sold History for Seller 
+const sellerHistoryRef = doc(db, 'users', listing.userId, 'soldHistory', listing.id);
+try {
+  await setDoc(sellerHistoryRef, {
+    listingId: listing.id,
+    name: listing.name,
+    price: listing.price,
+    imageUrl: listing.imageUrl,
+    buyerId: auth.currentUser.uid,
+    timestamp: new Date()
+  });
+  console.log('Sold History updated for Seller');
+} catch (error) {
+  console.error('🔥 Error saving Sold History:', error);
+}
+
+  
+        // 🔥 Navigate back to prevent double-buying
         navigation.goBack();  // If the navigation crash happens, comment this out
       }
     } catch (err) {
@@ -58,7 +92,7 @@ const PaymentScreen = ({ route, navigation }) => {
       setLoading(false);
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Button title="Pay Now" onPress={handlePayment} disabled={loading} />

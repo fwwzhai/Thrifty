@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { auth, db } from '../firebaseConfig';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, query, where, getDocs, orderBy } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const ProfileScreen = ({ navigation }) => {
@@ -11,37 +11,12 @@ const ProfileScreen = ({ navigation }) => {
   const userId = auth.currentUser?.uid;
   const [followersCount, setFollowersCount] = useState(0);
 const [followingCount, setFollowingCount] = useState(0);
+const [purchaseHistory, setPurchaseHistory] = useState([]);
+const [soldHistory, setSoldHistory] = useState([]);
+const [isViewingPurchaseHistory, setIsViewingPurchaseHistory] = useState(true);  // Toggle View
 
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUserProfile = async () => {
-        try {
-          // 🔥 Fetch User Data
-          const userDocRef = doc(db, "users", userId);
-          const userDocSnap = await getDoc(userDocRef);
-
-          if (userDocSnap.exists()) {
-            setUserInfo(userDocSnap.data());
-          } else {
-            setUserInfo({ name: "Unknown", bio: "No bio available" });
-          }
-
-          // 🔥 Fetch User's Listings
-          const listingsQuery = query(collection(db, "listings"), where("userId", "==", userId));
-          const listingsSnapshot = await getDocs(listingsQuery);
-          const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setUserListings(listingsData);
-
-        } catch (error) {
-          console.error("🔥 Error fetching profile:", error);
-        }
-      };
-
-      fetchUserProfile();
-    }, [userId]) 
-  );
-
+ 
   useFocusEffect(
     useCallback(() => {
       const fetchUserProfile = async () => {
@@ -81,11 +56,54 @@ const [followingCount, setFollowingCount] = useState(0);
     }, [userId]) 
   );
   
+  useEffect(() => {
+    const buyerHistoryRef = collection(db, 'users', auth.currentUser.uid, 'purchaseHistory');
+    const q = query(buyerHistoryRef, orderBy('timestamp', 'desc'));
+  
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const history = querySnapshot.docs.map(doc => doc.data());
+      setPurchaseHistory(history);
+    });
+  
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const sellerHistoryRef = collection(db, 'users', auth.currentUser.uid, 'soldHistory');
+    const q = query(sellerHistoryRef, orderBy('timestamp', 'desc'));
+  
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const history = querySnapshot.docs.map(doc => doc.data());
+      setSoldHistory(history);
+    });
+  
+    return () => unsubscribe();
+  }, []);
+  
+  
   const handleEditProfile = () => {
     navigation.navigate('EditProfile', { userId });
   };
 
+  {isViewingPurchaseHistory ? (
+    purchaseHistory.map((item, index) => (
+      <View key={index} style={styles.historyItem}>
+        <Text>{item.name} - RM {item.price}</Text>
+        <Image source={{ uri: item.imageUrl }} style={styles.historyImage} />
+      </View>
+    ))
+  ) : (
+    soldHistory.map((item, index) => (
+      <View key={index} style={styles.historyItem}>
+        <Text>{item.name} - RM {item.price}</Text>
+        <Image source={{ uri: item.imageUrl }} style={styles.historyImage} />
+      </View>
+    ))
+  )}
+  
+  
   return (
+   
     <FlatList
       data={userListings}
       keyExtractor={(item) => item.id}
@@ -119,19 +137,19 @@ const [followingCount, setFollowingCount] = useState(0);
           />
           <Text style={styles.name}>{userInfo.name}</Text>
           <Text style={styles.bio}>{userInfo.bio}</Text>
+      
           <View style={styles.followContainer}>
-  <TouchableOpacity onPress={() => navigation.navigate('FollowList', { userId, type: 'followers' })}>
-    <Text style={styles.followCount}>{followersCount}</Text>
-    <Text style={styles.followLabel}>Followers</Text>
-  </TouchableOpacity>
-
-  <TouchableOpacity onPress={() => navigation.navigate('FollowList', { userId, type: 'following' })}>
-    <Text style={styles.followCount}>{followingCount}</Text>
-    <Text style={styles.followLabel}>Following</Text>
-  </TouchableOpacity>
-</View>
-
-  
+            <TouchableOpacity onPress={() => navigation.navigate('FollowList', { userId, type: 'followers' })}>
+              <Text style={styles.followCount}>{followersCount}</Text>
+              <Text style={styles.followLabel}>Followers</Text>
+            </TouchableOpacity>
+      
+            <TouchableOpacity onPress={() => navigation.navigate('FollowList', { userId, type: 'following' })}>
+              <Text style={styles.followCount}>{followingCount}</Text>
+              <Text style={styles.followLabel}>Following</Text>
+            </TouchableOpacity>
+          </View>
+      
           <TouchableOpacity 
             style={styles.editButton} 
             onPress={handleEditProfile}
@@ -139,7 +157,7 @@ const [followingCount, setFollowingCount] = useState(0);
             <Icon name="edit" size={18} color="white" />
             <Text style={styles.editButtonText}> Edit Profile</Text>
           </TouchableOpacity>
-  
+      
           <TouchableOpacity 
             style={styles.wishlistButton} 
             onPress={() => navigation.navigate('Wishlist')}
@@ -147,10 +165,30 @@ const [followingCount, setFollowingCount] = useState(0);
             <Icon name="heart" size={18} color="white" />
             <Text style={styles.wishlistButtonText}> Wishlist</Text>
           </TouchableOpacity>
-  
+      
+          <View style={styles.buttonContainer}>
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('PurchaseHistory')}
+    style={styles.historyButton}
+  >
+    <Text style={styles.historyButtonText}>Purchases</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('SoldHistory')}
+    style={styles.historyButton}
+  >
+    <Text style={styles.historyButtonText}>Sold</Text>
+  </TouchableOpacity>
+</View>
+
+
+          
+      
           <Text style={styles.listingHeader}>Listings by {userInfo.name}:</Text>
         </View>
       }
+      
   
       // ✅ Dynamic Padding
       contentContainerStyle={{ paddingBottom: 20 }}
@@ -283,6 +321,34 @@ const styles = StyleSheet.create({
     marginTop: 2,  // Space between count and label
     paddingHorizontal: 15, // Space between Followers and Following
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  
+  historyButton: {
+    backgroundColor: '#007BFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  
+  historyButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  
+  
   
   
 });
