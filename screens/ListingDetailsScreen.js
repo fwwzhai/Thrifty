@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { auth, db } from '../firebaseConfig';
-import { doc, setDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 
@@ -60,6 +60,22 @@ useEffect(() => {
   };
   checkWishlist();
 }, [user, listing.id]);
+
+const [isSold, setIsSold] = useState(listing.isSold);  // 🔥 Track sold status in state
+
+useEffect(() => {
+  const listingRef = doc(db, 'listings', listing.id);
+  
+  const unsubscribe = onSnapshot(listingRef, (doc) => {
+    if (doc.exists()) {
+      const updatedListing = doc.data();
+      setIsSold(updatedListing.isSold);  // 🔥 Update state in real-time
+    }
+  });
+
+  return () => unsubscribe();  // Cleanup listener
+}, [listing.id]);
+
 
 
 const toggleWishlist = async () => {
@@ -129,33 +145,25 @@ const toggleWishlist = async () => {
   };
 
   // 🔥 Buy Now Function
-  const handleBuy = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      Alert.alert('Error', 'You must be logged in to buy an item.');
-      return;
-    }
+const handleBuy = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    Alert.alert('Error', 'You must be logged in to buy an item.');
+    return;
+  }
 
-    Alert.alert('Purchase', 'Proceed to buy this item?', [
-      { text: 'Cancel', style: 'cancel' },
-      { 
-        text: 'Buy', 
-        onPress: async () => {
-          try {
-            await updateDoc(doc(db, "listings", listing.id), {
-              isSold: true,
-              buyerId: user.uid,
-            });
-            Alert.alert('Success', 'Purchase completed!');
-            navigation.goBack();
-          } catch (error) {
-            console.error("🔥 Error updating listing:", error);
-            Alert.alert("Error", "Failed to complete the purchase.");
-          }
-        }
+  Alert.alert('Purchase', 'Proceed to buy this item?', [
+    { text: 'Cancel', style: 'cancel' },
+    { 
+      text: 'Buy', 
+      onPress: () => {
+        // 🔥 Navigate to Payment Screen and pass the listing details
+        navigation.navigate('Payment', { listing });
       }
-    ]);
-  };
+    }
+  ]);
+};
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -216,14 +224,15 @@ const toggleWishlist = async () => {
 )}
 
 
-          {/* 🔥 Show "Buy Now" ONLY if not sold */}
-          {!listing.isSold ? (
-            <TouchableOpacity style={styles.buyButton} onPress={handleBuy}>
-              <Text style={styles.buyButtonText}>Buy Now</Text>
-            </TouchableOpacity>
-          ) : (
-            <Text style={styles.soldText}>SOLD</Text>
-          )}
+{/* 🔥 Show "Buy Now" ONLY if not sold */}
+{!isSold ? (
+  <TouchableOpacity style={styles.buyButton} onPress={handleBuy}>
+    <Text style={styles.buyButtonText}>Buy Now</Text>
+  </TouchableOpacity>
+) : (
+  <Text style={styles.soldText}>SOLD</Text>
+)}
+
 
           {/* 🔥 Show "Delete" button ONLY if the user is the owner */}
           {isOwner && (
@@ -349,6 +358,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
+  soldText: {
+    fontSize: 22,
+    color: 'red',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  
   
 });
 
