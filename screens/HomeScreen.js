@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Image, View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { auth, db } from '../firebaseConfig';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth'; 
 
 const HomeScreen = ({ navigation, route }) => {
@@ -13,9 +13,25 @@ const HomeScreen = ({ navigation, route }) => {
   const selectedTypes = filters.selectedTypes || [];
   const selectedConditions = filters.selectedConditions || [];
   const maxPrice = filters.maxPrice || '';
+  // 🔥 State for Sorting
+
+  
+  // 🔥 Extract Sorting Parameters Correctly
+  const sortType = filters.sortType || 'date'; 
+  const sortOrder = filters.sortOrder || 'desc';
+  const priceSortOrder = filters.priceSortOrder || 'desc';
+  
+
+
+
+  
 
   useEffect(() => {
-    const q = query(collection(db, "listings")); 
+    const q = query(
+      collection(db, "listings"),
+      orderBy("createdAt", sortOrder) // 🔥 Order by createdAt with selected sortOrder
+    ); 
+  
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -23,9 +39,10 @@ const HomeScreen = ({ navigation, route }) => {
       }));
       setListings(items);
     });
+  
     return () => unsubscribe();
-  }, []);
-
+  }, [sortOrder]); // 🔥 Re-fetch when sortOrder changes
+  
   useEffect(() => {
     if (route.params?.userData) {
       setUserData(route.params.userData);
@@ -42,14 +59,49 @@ const HomeScreen = ({ navigation, route }) => {
     }
   };
 
-  const filteredListings = listings.filter(item =>
-    (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     item.sellerName?.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (selectedTypes.length === 0 || selectedTypes.includes(item.type)) &&
-    (selectedConditions.length === 0 || selectedConditions.includes(item.condition)) &&
-    (maxPrice === '' || item.price <= parseFloat(maxPrice)) &&
-    (selectedColors.length === 0 || item.colors?.some(color => selectedColors.includes(color)))
-  );
+  const filteredListings = listings
+  .filter(item => {
+    const matchesSearchQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.sellerName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(item.type);
+
+    const matchesCondition = selectedConditions.length === 0 || selectedConditions.includes(item.condition);
+
+    const matchesMaxPrice = maxPrice === '' || item.price <= parseFloat(maxPrice);
+
+    const matchesColor = selectedColors.length === 0 || 
+      item.colors?.some(color => selectedColors.includes(color));
+
+    return matchesSearchQuery && matchesType && matchesCondition && matchesMaxPrice && matchesColor;
+  })
+  .sort((a, b) => {
+    // 🔥 Sort by Date
+    if (sortType === 'date') {
+      if (sortOrder === 'desc') {
+        return b.createdAt.toMillis() - a.createdAt.toMillis();
+      } else {
+        return a.createdAt.toMillis() - b.createdAt.toMillis();
+      }
+    }
+
+    // 🔥 Sort by Price
+    if (sortType === 'price') {
+      if (priceSortOrder === 'desc') {
+        return b.price - a.price;  // High to Low
+      } else {
+        return a.price - b.price;  // Low to High
+      }
+    }
+
+    // 🔥 Default: No Sorting
+    return 0;
+  });
+
+
+
+
+
   
   return (
     <View style={styles.container}>
@@ -63,10 +115,12 @@ const HomeScreen = ({ navigation, route }) => {
 
       <TouchableOpacity 
         style={styles.filterButton} 
-        onPress={() => navigation.navigate('FilterScreen', { currentFilters: filters, userData })}
+        onPress={() => navigation.navigate('FilterScreen', { currentFilters: filters, sortOrder, userData })}
       >
         <Text style={styles.filterButtonText}>Filter</Text>
       </TouchableOpacity>
+
+   
 
       <FlatList
         data={filteredListings}
@@ -233,6 +287,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  sortButton: {
+    backgroundColor: '#6c757d',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 15,
+    width: '100%',
+  },
+  sortButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
 
 
 });

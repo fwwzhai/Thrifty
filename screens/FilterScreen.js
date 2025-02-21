@@ -9,6 +9,21 @@ const FilterScreen = ({ navigation, route }) => {
   const [selectedConditions, setSelectedConditions] = useState(currentFilters.selectedConditions || []);
   const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '');
   const [selectedColors, setSelectedColors] = useState(currentFilters.selectedColors || []);
+  // 🔥 New State for Sort Order
+const [sortOrder, setSortOrder] = useState('desc'); // Default: Recent First
+const [priceSortOrder, setPriceSortOrder] = useState('desc');
+const [sortType, setSortType] = useState('date'); // Default: Sort by Date
+
+
+// 🔥 Toggle Sort Order
+const toggleSortOrder = () => {
+  setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
+};
+
+const togglePriceSortOrder = () => {
+  setPriceSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
+};
+
 
   // 🔥 Toggle Type Selection
   const toggleType = (type) => {
@@ -26,6 +41,38 @@ const FilterScreen = ({ navigation, route }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* 🔹 Sort Type Selection */}
+<Text style={styles.label}>Sort By:</Text>
+<View style={styles.grid}>
+  <TouchableOpacity 
+    style={[styles.sortButton, sortType === 'date' && styles.selectedSort]} 
+    onPress={() => setSortType('date')}
+  >
+    <Text style={styles.sortButtonText}>Date</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity 
+    style={[styles.sortButton, sortType === 'price' && styles.selectedSort]} 
+    onPress={() => setSortType('price')}
+  >
+    <Text style={styles.sortButtonText}>Price</Text>
+  </TouchableOpacity>
+</View>
+
+{/* 🔹 Sort Order Selection */}
+<Text style={styles.label}>Order:</Text>
+<TouchableOpacity 
+  style={styles.sortButton} 
+  onPress={sortType === 'date' ? toggleSortOrder : togglePriceSortOrder}
+>
+  <Text style={styles.sortButtonText}>
+    {sortType === 'date' 
+      ? (sortOrder === 'desc' ? 'Recent First' : 'Oldest First') 
+      : (priceSortOrder === 'desc' ? 'Price: High to Low' : 'Price: Low to High')
+    }
+  </Text>
+</TouchableOpacity>
+
       <Text style={styles.title}>Filters</Text>
 
       {/* 🔹 Type Selection */}
@@ -96,17 +143,27 @@ const FilterScreen = ({ navigation, route }) => {
 </View>
 
       {/* 🔥 Apply Filters */}
-      <TouchableOpacity 
-        style={styles.applyButton} 
-        onPress={() => {
-            navigation.navigate('Home', { 
-              filters: { selectedTypes, selectedConditions, selectedColors, maxPrice }, 
-              userData: route.params?.userData  // 🔥 Preserve userData
-            });
-          }}
-      >
-        <Text style={styles.applyButtonText}>Apply Filters</Text>
-      </TouchableOpacity>
+      {/* 🔥 Apply Filters */}
+<TouchableOpacity 
+  style={styles.applyButton} 
+  onPress={() => {
+      navigation.navigate('Home', { 
+        filters: { 
+          selectedTypes, 
+          selectedConditions, 
+          selectedColors, 
+          maxPrice, 
+          sortType,        // 🔥 Pass Sort Type
+          sortOrder, 
+          priceSortOrder 
+        }, 
+        userData: route.params?.userData
+      });
+    }}
+>
+  <Text style={styles.applyButtonText}>Apply Filters</Text>
+</TouchableOpacity>
+
 
       {/* 🔥 Reset Filters */}
       <TouchableOpacity 
@@ -213,6 +270,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  sortButton: {
+    backgroundColor: '#6c757d',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 15,
+    width: '100%',
+  },
+  sortButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
 });
 
 export default FilterScreen;
