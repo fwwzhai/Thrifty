@@ -139,13 +139,12 @@ const currentUser = auth.currentUser;
           onPress={() => navigation.navigate('ListingDetails', { listing: item })}
         >
           {item.imageUrl ? (
-            <Image 
-              source={{ uri: item.imageUrl }} 
-              style={styles.listingImage} 
-            />
-          ) : (
-            <Text>No Image Available</Text>
-          )}
+                     <Image source={{ uri: item.imageUrl }} style={styles.listingImage} />
+                   ) : Array.isArray(item.imageUrls) && item.imageUrls.length > 0 ? (
+                     <Image source={{ uri: item.imageUrls[0] }} style={styles.listingImage} />
+                   ) : (
+                     <Text>No Image Available</Text>
+                   )}
           <View style={styles.listingDetails}>
             <Text style={styles.listingTitle}>{item.name}</Text>
             <Text style={styles.listingPrice}>RM {item.price}</Text>

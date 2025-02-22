@@ -15,7 +15,8 @@ import ClothingPicker from './ClothingPicker'; // Adjust the path based on where
 import ConditionPicker from './ConditionPicker';
 
 const CreateListingScreen = ({ navigation }) => {
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]); // 🔥 Multiple Images State
+
   const [itemName, setItemName] = useState('');
   const [price, setPrice] = useState('');
   const [type, setType] = useState(''); // 🔥 Clothing Type
@@ -57,29 +58,30 @@ const handleColorSelect = (color) => {
 };
 
   
-  // 🔥 Function to pick an image
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
-  
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-  
-      // 🔥 Analyze Image using Vision API
-      const { labels: detectedLabels, colors: detectedColors } = await analyzeImage(result.assets[0].base64);
-      setLabels(detectedLabels);
-  
-      // 🔥 Extract Dominant Color Names
-      const colorNames = detectedColors.map(color => color.rgb);
-      setColors(colorNames);
-      setShowSuggestions(true);
-    }
-  };
+const pickImages = async () => {
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsMultipleSelection: true, // 🔥 Allow multiple selection
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+    base64: true,
+  });
+
+  if (!result.canceled) {
+    const newImages = result.assets.map(asset => asset.uri);
+    setImages([...images, ...newImages]); // 🔥 Add to existing images
+
+    // 🔥 Analyze Image using Vision API for the first image
+    const { labels: detectedLabels, colors: detectedColors } = await analyzeImage(result.assets[0].base64);
+    setLabels(detectedLabels);
+
+    const colorNames = detectedColors.map(color => color.rgb);
+    setColors(colorNames);
+    setShowSuggestions(true);
+  }
+};
+
   
   
 
@@ -87,36 +89,42 @@ const handleColorSelect = (color) => {
   
   
   // 🔥 Function to upload image to Firebase Storage
-  const uploadImage = async (uri) => {
+  const uploadImages = async () => {
     try {
       setUploading(true);
-
-      const compressedImage = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      const response = await fetch(compressedImage.uri);
-      const blob = await response.blob();
-
-      const filename = `listings/${auth.currentUser.uid}_${Date.now()}.jpg`;
-      const storageRef = ref(storage, filename);
-
-      await uploadBytes(storageRef, blob);
-      const downloadURL = await getDownloadURL(storageRef);
+      const downloadURLs = [];
+  
+      for (const uri of images) {
+        const compressedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 800 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
+  
+        const response = await fetch(compressedImage.uri);
+        const blob = await response.blob();
+  
+        const filename = `listings/${auth.currentUser.uid}_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+        const storageRef = ref(storage, filename);
+  
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+        downloadURLs.push(downloadURL); // 🔥 Collect all image URLs
+      }
+  
       setUploading(false);
-      return downloadURL;
+      return downloadURLs;
     } catch (error) {
       console.error("🔥 Image Upload Error:", error);
-      Alert.alert('Error', 'Failed to upload image.');
+      Alert.alert('Error', 'Failed to upload images.');
       setUploading(false);
       return null;
     }
   };
+  
 
   const handleAddListing = async () => {
-    if (!itemName || !image || !price || !type || !description) {
+    if (!itemName || !images || !price || !type || !description) {
       Alert.alert('Error', 'Please fill all fields and select an image.');
       return;
     }
@@ -132,15 +140,17 @@ const handleColorSelect = (color) => {
       const userSnap = await getDoc(userRef);
       let sellerName = userSnap.exists() && userSnap.data().name ? userSnap.data().name : "Unknown Seller";
   
-      const imageUrl = await uploadImage(image);
-      if (!imageUrl) return;
+      const imageUrls = await uploadImages(); // 🔥 Multiple Image URLs
+if (!imageUrls) return;
+
   
       // 🔥 Add color to Firestore
       await addDoc(collection(db, 'listings'), {
         userId: user.uid,
         sellerName,
         name: itemName,
-        imageUrl,
+        imageUrls, // 🔥 Store multiple image URLs
+
         price,
         type,
         condition,
@@ -164,13 +174,18 @@ const handleColorSelect = (color) => {
       <View style={styles.container}>
         <Text style={styles.title}>Create Listing</Text>
   
-        <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.image} />
-          ) : (
-            <Text>Select an Image</Text>
-          )}
-        </TouchableOpacity>
+        <TouchableOpacity onPress={pickImages} style={styles.imagePicker}>
+  <Text>Select Images</Text>
+</TouchableOpacity>
+
+{images.length > 0 && (
+  <ScrollView horizontal style={styles.imagePreviewContainer}>
+    {images.map((img, index) => (
+      <Image key={index} source={{ uri: img }} style={styles.imagePreview} />
+    ))}
+  </ScrollView>
+)}
+
   
         <TextInput
           style={styles.input}
@@ -293,8 +308,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   imagePicker: {
-    width: 200,
-    height: 200,
+    width: 100,
+    height: 100,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -336,7 +351,17 @@ const styles = StyleSheet.create({
     
   },
   
-
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 8,
+  },
+  
   labelContainer: {
     marginTop: 10,
     padding: 10,

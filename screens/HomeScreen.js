@@ -130,11 +130,14 @@ const HomeScreen = ({ navigation, route }) => {
             style={styles.listing} 
             onPress={() => navigation.navigate('ListingDetails', { listing: item })}
           >
-            {item.imageUrl ? (
-              <Image source={{ uri: item.imageUrl }} style={styles.listingImage} />
-            ) : (
-              <Text>No Image Available</Text>
-            )}
+           {item.imageUrl ? (
+  <Image source={{ uri: item.imageUrl }} style={styles.listingImage} />
+) : Array.isArray(item.imageUrls) && item.imageUrls.length > 0 ? (
+  <Image source={{ uri: item.imageUrls[0] }} style={styles.listingImage} />
+) : (
+  <Text>No Image Available</Text>
+)}
+
             <Text style={styles.listingTitle}>{item.name}</Text>
             <Text style={styles.listingPrice}>RM {item.price}</Text>
             <Text style={styles.listingSeller}>Seller: {item.sellerName || 'Unknown'}</Text>

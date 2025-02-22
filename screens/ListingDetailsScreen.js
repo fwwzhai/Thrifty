@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { auth, db } from '../firebaseConfig';
 import { doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
@@ -101,13 +101,22 @@ const toggleWishlist = async () => {
       Alert.alert('Removed', 'Item removed from wishlist.');
     } else {
       // 🔥 Add to Wishlist
-      await setDoc(wishlistRef, {
-        listingId: listing.id,
-        name: listing.name,
-        price: listing.price,
-        imageUrl: listing.imageUrl,
-        timestamp: new Date(),
-      }, { merge: true }); // Ensure the document is merged
+      // 🔥 Get Image URL for Wishlist
+const wishlistImageUrl = listing.imageUrl 
+? listing.imageUrl 
+: Array.isArray(listing.imageUrls) && listing.imageUrls.length > 0 
+  ? listing.imageUrls[0] 
+  : null;
+
+  await setDoc(wishlistRef, {
+  listingId: listing.id,
+  name: listing.name,
+  price: listing.price,
+  imageUrl: wishlistImageUrl, // 🔥 Use the resolved image URL
+  timestamp: new Date(),
+}, { merge: true });
+
+   // Ensure the document is merged
       setIsWishlisted(true);
       Alert.alert('Added', 'Item added to wishlist.');
     }
@@ -165,88 +174,111 @@ const handleBuy = async () => {
 };
 
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        {listing.imageUrl ? (
+return (
+  <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.card}>
+      {listing.imageUrl ? (
+        // 🔥 Display Single Image
+        <Image 
+          source={{ uri: listing.imageUrl }} 
+          style={styles.image} 
+        />
+      ) : Array.isArray(listing.imageUrls) && listing.imageUrls.length > 0 ? (
+        // 🔥 Display Multiple Images with Horizontal Scroll
+        listing.imageUrls.length === 1 ? (
           <Image 
-            source={{ uri: listing.imageUrl }} 
+            source={{ uri: listing.imageUrls[0] }} 
             style={styles.image} 
           />
         ) : (
-          <Text>No Image Available</Text>
-        )}
-  <TouchableOpacity 
-  style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}
-  onPress={toggleWishlist}
->
-  <Icon 
-    name={isWishlisted ? 'heart' : 'heart-o'} 
-    size={30} 
-    color={isWishlisted ? 'red' : '#888'} 
-  />
-</TouchableOpacity>
-
-        <View style={styles.infoContainer}>
-          <Text style={styles.title}>{listing.name}</Text>
-          <Text style={styles.price}>RM {listing.price}</Text>
-          <Text style={styles.type}>Type: {listing.type}</Text>
-          <Text style={styles.condition}>Condition: {listing.condition}</Text>
-          <Text style={styles.description}>Description: {listing.description}</Text>
-          {/* 🔥 Display Colors */}
-{listing.colors && listing.colors.length > 0 && (
-  <View style={styles.colorContainer}>
-    <Text style={styles.colorTitle}>Colors:</Text>
-    <View style={styles.colorList}>
-      {listing.colors.map((color, index) => (
-        <View 
-          key={index} 
-          style={[styles.colorCircle, { backgroundColor: color }]}
-        />
-      ))}
+          <FlatList
+            data={listing.imageUrls}
+            keyExtractor={(url, index) => index.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <Image 
+                source={{ uri: item }} 
+                style={styles.imageScrollable} 
+              />
+            )}
+          />
+        )
+      ) : (
+        <Text>No Image Available</Text>
+      )}
     </View>
-  </View>
-)}
 
+    {/* 🔥 Wishlist Button */}
+    <TouchableOpacity 
+      style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}
+      onPress={toggleWishlist}
+    >
+      <Icon 
+        name={isWishlisted ? 'heart' : 'heart-o'} 
+        size={30} 
+        color={isWishlisted ? 'red' : '#888'} 
+      />
+    </TouchableOpacity>
 
-       {/* 🔥 Display Seller Info */}
-       {sellerData && (
-  <TouchableOpacity 
-    style={styles.sellerContainer}
-    onPress={() => navigation.navigate('UserProfile', { userId: listing.userId })}
-  >
-    <Image 
-      source={{ uri: sellerData.profileImage }} 
-      style={styles.sellerImage} 
-    />
-    <Text style={styles.sellerName}>{sellerData.name}</Text>
-  </TouchableOpacity>
-)}
-
-
-{/* 🔥 Show "Buy Now" ONLY if not sold */}
-{!isSold ? (
-  <TouchableOpacity style={styles.buyButton} onPress={handleBuy}>
-    <Text style={styles.buyButtonText}>Buy Now</Text>
-  </TouchableOpacity>
-) : (
-  <Text style={styles.soldText}>SOLD</Text>
-)}
-
-
-          {/* 🔥 Show "Delete" button ONLY if the user is the owner */}
-          {isOwner && (
-            <TouchableOpacity 
-              style={styles.deleteButton} 
-              onPress={handleDeleteListing}
-            >
-              <Text style={styles.deleteButtonText}>Delete Listing</Text>
-            </TouchableOpacity>
-          )}
+    <View style={styles.infoContainer}>
+      <Text style={styles.title}>{listing.name}</Text>
+      <Text style={styles.price}>RM {listing.price}</Text>
+      <Text style={styles.type}>Type: {listing.type}</Text>
+      <Text style={styles.condition}>Condition: {listing.condition}</Text>
+      <Text style={styles.description}>Description: {listing.description}</Text>
+      
+      {/* 🔥 Display Colors */}
+      {listing.colors && listing.colors.length > 0 && (
+        <View style={styles.colorContainer}>
+          <Text style={styles.colorTitle}>Colors:</Text>
+          <View style={styles.colorList}>
+            {listing.colors.map((color, index) => (
+              <View 
+                key={index} 
+                style={[styles.colorCircle, { backgroundColor: color }]}
+              />
+            ))}
+          </View>
         </View>
-      </View>
-    </ScrollView>
-  );
+      )}
+
+      {/* 🔥 Display Seller Info */}
+      {sellerData && (
+        <TouchableOpacity 
+          style={styles.sellerContainer}
+          onPress={() => navigation.navigate('UserProfile', { userId: listing.userId })}
+        >
+          <Image 
+            source={{ uri: sellerData.profileImage }} 
+            style={styles.sellerImage} 
+          />
+          <Text style={styles.sellerName}>{sellerData.name}</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* 🔥 Show "Buy Now" ONLY if not sold */}
+      {!isSold ? (
+        <TouchableOpacity style={styles.buyButton} onPress={handleBuy}>
+          <Text style={styles.buyButtonText}>Buy Now</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={styles.soldText}>SOLD</Text>
+      )}
+
+      {/* 🔥 Show "Delete" button ONLY if the user is the owner */}
+      {isOwner && (
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={handleDeleteListing}
+        >
+          <Text style={styles.deleteButtonText}>Delete Listing</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  </ScrollView>
+);
+
 };
 
 const styles = StyleSheet.create({
@@ -365,6 +397,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  image: {
+    width: '100%',
+    height: 300,
+    borderRadius: 10,
+    resizeMode: 'cover',
+    marginBottom: 10,
+    backgroundColor: '#f0f0f0',
+  },
+  imageScrollable: {
+    width: 300,
+    height: 300,
+    marginRight: 10,
+    borderRadius: 10,
+    resizeMode: 'cover',
+    backgroundColor: '#f0f0f0',
+  },
+  
   
   
 });

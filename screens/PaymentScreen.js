@@ -52,34 +52,40 @@ const PaymentScreen = ({ route, navigation }) => {
         });
         console.log('Listing updated to SOLD');
   
-        // 🔥 Save Purchase History for Buyer
-        const buyerHistoryRef = doc(db, 'users', auth.currentUser.uid, 'purchaseHistory', listing.id);
-        await setDoc(buyerHistoryRef, {
-          listingId: listing.id,
-          name: listing.name,
-          price: listing.price,
-          imageUrl: listing.imageUrl,
-          sellerId: listing.userId,
-          timestamp: new Date()
-        });
+        // 🔥 Check for Single or Multiple Images
+const historyImageUrl = listing.imageUrl 
+? listing.imageUrl 
+: Array.isArray(listing.imageUrls) && listing.imageUrls.length > 0 
+  ? listing.imageUrls[0] 
+  : null;
+
+  const buyerHistoryRef = doc(db, 'users', auth.currentUser.uid, 'purchaseHistory', listing.id);
+await setDoc(buyerHistoryRef, {
+  listingId: listing.id,
+  name: listing.name,
+  price: listing.price,
+  imageUrl: historyImageUrl, // 🔥 Use the resolved image URL
+  sellerId: listing.userId,
+  timestamp: new Date()
+});
+console.log('Purchase History updated for Buyer');
+
+  
         console.log('Purchase History updated for Buyer');
   
         // 🔥 Save Sold History for Seller
-        // 🔥 Save Sold History for Seller 
-const sellerHistoryRef = doc(db, 'users', listing.userId, 'soldHistory', listing.id);
-try {
-  await setDoc(sellerHistoryRef, {
-    listingId: listing.id,
-    name: listing.name,
-    price: listing.price,
-    imageUrl: listing.imageUrl,
-    buyerId: auth.currentUser.uid,
-    timestamp: new Date()
-  });
-  console.log('Sold History updated for Seller');
-} catch (error) {
-  console.error('🔥 Error saving Sold History:', error);
-}
+        
+        const sellerHistoryRef = doc(db, 'users', listing.userId, 'soldHistory', listing.id);
+        await setDoc(sellerHistoryRef, {
+          listingId: listing.id,
+          name: listing.name,
+          price: listing.price,
+          imageUrl: historyImageUrl, // 🔥 Use the resolved image URL
+          buyerId: auth.currentUser.uid,
+          timestamp: new Date()
+        });
+        console.log('Sold History updated for Seller');
+        
 
   
         // 🔥 Navigate back to prevent double-buying

@@ -113,10 +113,9 @@ const [isViewingPurchaseHistory, setIsViewingPurchaseHistory] = useState(true); 
           onPress={() => navigation.navigate('ListingDetails', { listing: item })}
         >
           {item.imageUrl ? (
-            <Image 
-              source={{ uri: item.imageUrl }} 
-              style={styles.listingImage} 
-            />
+            <Image source={{ uri: item.imageUrl }} style={styles.listingImage} />
+          ) : Array.isArray(item.imageUrls) && item.imageUrls.length > 0 ? (
+            <Image source={{ uri: item.imageUrls[0] }} style={styles.listingImage} />
           ) : (
             <Text>No Image Available</Text>
           )}
