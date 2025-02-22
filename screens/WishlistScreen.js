@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const WishlistScreen = () => {
   const navigation = useNavigation();
@@ -25,10 +25,30 @@ const WishlistScreen = () => {
     fetchWishlist();
   }, []);
 
-  const renderItem = ({ item }) => (
+const renderItem = ({ item }) => {
+  const handleNavigateToDetails = async () => {
+    try {
+      const listingRef = doc(db, 'listings', item.listingId);
+      const listingSnap = await getDoc(listingRef);
+
+      if (listingSnap.exists()) {
+        const fullListing = { id: item.listingId, ...listingSnap.data() };
+
+        // 🔥 Navigate to ListingDetails with full listing object
+        navigation.navigate('ListingDetails', { listing: fullListing });
+      } else {
+        Alert.alert('Error', 'Listing not found.');
+      }
+    } catch (error) {
+      console.error('🔥 Error fetching listing details:', error);
+      Alert.alert('Error', 'Failed to fetch listing details.');
+    }
+  };
+
+  return (
     <TouchableOpacity 
       style={styles.card}
-      onPress={() => navigation.navigate('ListingDetails', { listing: item })}
+      onPress={handleNavigateToDetails}
     >
       <Image source={{ uri: item.imageUrl }} style={styles.image} />
       <View style={styles.infoContainer}>
@@ -37,6 +57,8 @@ const WishlistScreen = () => {
       </View>
     </TouchableOpacity>
   );
+};
+
 
   return (
     <View style={styles.container}>
