@@ -88,8 +88,11 @@ console.log('Purchase History updated for Buyer');
         
 
   
-        // 🔥 Navigate back to prevent double-buying
-        navigation.goBack();  // If the navigation crash happens, comment this out
+        // 🔥 Navigate back with a short delay
+setTimeout(() => {
+  navigation.goBack();  
+}, 1000);  // 🔥 Delay of 1000ms (1 second)
+  // If the navigation crash happens, comment this out
       }
     } catch (err) {
       console.error('Payment Error:', err);

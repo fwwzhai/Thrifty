@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
-import { signOut } from 'firebase/auth'; 
+import { signOut, onAuthStateChanged  } from 'firebase/auth'; 
 
 const HomeScreen = ({ navigation, route }) => {
   const [listings, setListings] = useState([]);
@@ -13,6 +13,8 @@ const HomeScreen = ({ navigation, route }) => {
   const selectedTypes = filters.selectedTypes || [];
   const selectedConditions = filters.selectedConditions || [];
   const maxPrice = filters.maxPrice || '';
+  const [followingList, setFollowingList] = useState([]);
+
   // 🔥 State for Sorting
 
   
@@ -21,33 +23,78 @@ const HomeScreen = ({ navigation, route }) => {
   const sortOrder = filters.sortOrder || 'desc';
   const priceSortOrder = filters.priceSortOrder || 'desc';
   
-
+  const toggleSection = () => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      showFollowing: !prevFilters.showFollowing
+    }));
+  };
+  
 
 
   
 
-  useEffect(() => {
-    const q = query(
-      collection(db, "listings"),
-      orderBy("createdAt", sortOrder) // 🔥 Order by createdAt with selected sortOrder
-    ); 
-  
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setListings(items);
-    });
-  
-    return () => unsubscribe();
-  }, [sortOrder]); // 🔥 Re-fetch when sortOrder changes
-  
-  useEffect(() => {
-    if (route.params?.userData) {
-      setUserData(route.params.userData);
+
+useEffect(() => {
+  let unsubscribeListings;
+  let unsubscribeFollowing;
+
+  // 🔥 Track Authentication State
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // 🔥 Fetch Following List
+      const followingRef = collection(db, 'users', user.uid, 'following');
+      unsubscribeFollowing = onSnapshot(followingRef, (snapshot) => {
+        const followedUsers = snapshot.docs.map(doc => doc.id);
+        setFollowingList(followedUsers);
+      });
+
+      // 🔥 Fetch Listings
+      const q = query(
+        collection(db, "listings"),
+        orderBy("createdAt", sortOrder)
+      ); 
+      
+      unsubscribeListings = onSnapshot(q, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })).filter(item => {
+          // 🔥 Only show listings from followed users if in Following Section
+          if (filters.showFollowing) {
+            return followingList.includes(item.userId);
+          }
+          return true;
+        });
+        setListings(items);
+      });
+    } else {
+      // 🔥 Clear State if User is Logged Out
+      setListings([]);
+      setFollowingList([]);
+
+      // 🔥 Unsubscribe from All Listeners Immediately
+      if (unsubscribeListings) {
+        unsubscribeListings();
+      }
+      if (unsubscribeFollowing) {
+        unsubscribeFollowing();
+      }
     }
-  }, [route.params]);
+  });
+
+  // 🔥 Clean Up Auth Listener on Unmount
+  return () => {
+    unsubscribeAuth();
+    if (unsubscribeListings) {
+      unsubscribeListings();
+    }
+    if (unsubscribeFollowing) {
+      unsubscribeFollowing();
+    }
+  };
+}, [sortOrder, filters.showFollowing]);
+
   
   const handleLogout = async () => {
     try {
@@ -73,7 +120,11 @@ const HomeScreen = ({ navigation, route }) => {
     const matchesColor = selectedColors.length === 0 || 
       item.colors?.some(color => selectedColors.includes(color));
 
-    return matchesSearchQuery && matchesType && matchesCondition && matchesMaxPrice && matchesColor;
+    const matchesFollowing = !filters.showFollowing || followingList.includes(item.userId);
+    
+
+    // 🔥 Combine all conditions including Following
+    return matchesSearchQuery && matchesType && matchesCondition && matchesMaxPrice && matchesColor && matchesFollowing;
   })
   .sort((a, b) => {
     // 🔥 Sort by Date
@@ -102,6 +153,7 @@ const HomeScreen = ({ navigation, route }) => {
 
 
 
+
   
   return (
     <View style={styles.container}>
@@ -113,12 +165,23 @@ const HomeScreen = ({ navigation, route }) => {
         onChangeText={setSearchQuery}
       />
 
-      <TouchableOpacity 
-        style={styles.filterButton} 
-        onPress={() => navigation.navigate('FilterScreen', { currentFilters: filters, sortOrder, userData })}
-      >
-        <Text style={styles.filterButtonText}>Filter</Text>
-      </TouchableOpacity>
+<View style={styles.buttonRow}>
+        <TouchableOpacity 
+          style={styles.filterButton} 
+          onPress={() => navigation.navigate('FilterScreen', { currentFilters: filters, sortOrder, userData })}
+        >
+          <Text style={styles.buttonText}>Filter</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.toggleButton, filters.showFollowing ? styles.activeButton : {}]} 
+          onPress={toggleSection}
+        >
+          <Text style={styles.buttonText}>{filters.showFollowing ? 'Public' : 'Following'}</Text>
+        </TouchableOpacity>
+      </View>
+
+
 
    
 
@@ -167,12 +230,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#a59079',
   },
   welcome: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
     marginBottom: 10,
   },
   searchBar: {
@@ -195,6 +258,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  toggleButton: {
+    backgroundColor: '#444',
+    padding: 12,
+    borderRadius: 10,
+    flex: 1,
+    alignItems: 'center',
   },
   listing: {
     backgroundColor: '#fff',
@@ -303,6 +378,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  toggleButton: {
+    backgroundColor: '#4A90E2',
+    padding: 10,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  toggleButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
   
 
 

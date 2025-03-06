@@ -21,16 +21,22 @@ import PurchaseDetailsScreen from './screens/PurchaseDetailsScreen';
 import SoldDetailsScreen from './screens/SoldDetailsScreen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import theme from './src/theme'; 
 import './firebaseConfig';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    // Wrap your entire app with StripeProvider
+    
     <StripeProvider publishableKey="pk_test_51QurWO2aNN6Ml181iHCJ8Hnb2cLDunJ3dOaCFjhzL8b0wvYXoqwkVbRk3Xib2V3RorvAtAhmzRK4mDSHigtq0u7g00odrpZ9YM">
+      
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Welcome">
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+
+        <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+          
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -54,10 +60,12 @@ export default function App() {
           <Stack.Screen name="SoldDetails" component={SoldDetailsScreen} />
 
         </Stack.Navigator>
+        </SafeAreaView>
       </NavigationContainer>
     </StripeProvider>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

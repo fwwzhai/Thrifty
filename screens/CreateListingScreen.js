@@ -8,8 +8,11 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { analyzeImage } from '../visionAPI';
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { ScrollView } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 
+
+import SizePicker from './SizePicker';
 
 import ClothingPicker from './ClothingPicker'; // Adjust the path based on where the file is located
 import ConditionPicker from './ConditionPicker';
@@ -23,6 +26,7 @@ const CreateListingScreen = ({ navigation }) => {
 const [condition, setCondition] = useState(''); // 🔥 Condition
 const [color, setColor] = useState('');
 const [selectedColors, setSelectedColors] = useState([]);
+const [size, setSize] = useState('');
 
 
 
@@ -155,6 +159,7 @@ if (!imageUrls) return;
         type,
         condition,
         description,
+        size,
         labels,
         colors: selectedColors,  // 🔥 Store multiple selected colors
         createdAt: new Date(),
@@ -203,6 +208,8 @@ if (!imageUrls) return;
   
         <ConditionPicker condition={condition} setCondition={setCondition} />
         <ClothingPicker type={type} setType={setType} />
+        <SizePicker selectedSize={size} setSelectedSize={setSize} />
+
   
         <TextInput
           style={styles.input}

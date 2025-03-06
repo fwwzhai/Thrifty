@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  StyleSheet, 
+  Image, 
+  ActivityIndicator 
+} from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -7,50 +16,75 @@ import { doc, getDoc } from 'firebase/firestore';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter your email and password.');
+      return;
+    }
+
     try {
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Fetch user details from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
-        console.log("User Data:", userData);
         Alert.alert('Success', `Welcome back, ${userData.name}!`);
-        
-        // Navigate to Home screen (or Profile screen if needed)
-        navigation.navigate('Home', { userData }); 
+        navigation.navigate('Home', { userData });
       } else {
-        Alert.alert('Error', 'User data not found in Firestore.');
+        Alert.alert('Error', 'User data not found.');
       }
 
     } catch (error) {
       Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Image source={require('../assets/logo.png')} style={styles.logo} />
+
+      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.subtitle}>Sign in to continue</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#aaa"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Login" onPress={handleLogin} />
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" style={styles.loader} />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.registerText}>
+          Don't have an account? <Text style={styles.registerLink}>Sign up</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -60,20 +94,62 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20
+    backgroundColor: '#1c1c1e',
+    padding: 20,
+  },
+  logo: {
+    width: 200, // 🔥 Adjust based on your logo
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#bbb',
+    textAlign: 'center',
+    marginBottom: 30,
   },
   input: {
     width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  }
+    height: 50,
+    backgroundColor: '#2c2c2e',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  registerText: {
+    color: '#aaa',
+    fontSize: 14,
+  },
+  registerLink: {
+    color: '#007bff',
+    fontWeight: 'bold',
+  },
+  loader: {
+    marginTop: 20,
+  },
 });
 
 export default LoginScreen;

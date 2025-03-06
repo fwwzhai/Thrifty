@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { auth, db, createUserWithEmailAndPassword, setDoc, doc } from '../firebaseConfig';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Alert, 
+  StyleSheet, 
+  ActivityIndicator 
+} from 'react-native';
+import { auth, db } from '../firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
 
 const RegisterScreen = ({ navigation }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
     try {
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -17,40 +34,61 @@ const RegisterScreen = ({ navigation }) => {
         uid: user.uid,
         name: name,
         email: email,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
       
       Alert.alert('Success', 'Account created successfully!');
       navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+      <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.subtitle}>Join Thrifty and start thrifting today</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Full Name"
+        placeholderTextColor="#aaa"
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#aaa"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Register" onPress={handleRegister} />
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#fff" style={styles.loader} />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.loginText}>
+          Already have an account? <Text style={styles.loginLink}>Sign in</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -60,20 +98,56 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20
+    backgroundColor: '#1c1c1e', // 🔥 Dark mode for a sleek look
+    padding: 20,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#bbb',
+    textAlign: 'center',
+    marginBottom: 30,
   },
   input: {
     width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  }
+    height: 50,
+    backgroundColor: '#2c2c2e', // 🔥 Darker input background
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    paddingVertical: 15,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 5, // 🔥 Adds shadow for premium look
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  loginText: {
+    color: '#aaa',
+    fontSize: 14,
+  },
+  loginLink: {
+    color: '#007bff',
+    fontWeight: 'bold',
+  },
+  loader: {
+    marginTop: 20,
+  },
 });
 
 export default RegisterScreen;

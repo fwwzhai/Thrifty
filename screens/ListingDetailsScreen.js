@@ -227,7 +227,8 @@ return (
       <Text style={styles.type}>Type: {listing.type}</Text>
       <Text style={styles.condition}>Condition: {listing.condition}</Text>
       <Text style={styles.description}>Description: {listing.description}</Text>
-      
+      <Text style={styles.size}>Size: {listing.size ? listing.size : 'Not specified'}</Text>
+
       {/* 🔥 Display Colors */}
       {listing.colors && listing.colors.length > 0 && (
         <View style={styles.colorContainer}>
@@ -390,6 +391,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
+  size: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#555',
+    marginBottom: 5,
+  },
+  
   soldText: {
     fontSize: 22,
     color: 'red',
