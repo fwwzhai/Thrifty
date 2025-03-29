@@ -9,7 +9,7 @@ import { analyzeImage } from '../visionAPI';
 import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-
+import { Linking } from 'react-native';
 
 
 import SizePicker from './SizePicker';
@@ -27,9 +27,6 @@ const [condition, setCondition] = useState(''); // 🔥 Condition
 const [color, setColor] = useState('');
 const [selectedColors, setSelectedColors] = useState([]);
 const [size, setSize] = useState('');
-
-
-
 
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -86,12 +83,11 @@ const pickImages = async () => {
   }
 };
 
-  
-  
+const removeImage = (index) => {
+  setImages(images.filter((_, i) => i !== index)); // 🔥 Remove the image at the specified index
+};
 
-  
-  
-  
+
   // 🔥 Function to upload image to Firebase Storage
   const uploadImages = async () => {
     try {
@@ -186,10 +182,19 @@ if (!imageUrls) return;
 {images.length > 0 && (
   <ScrollView horizontal style={styles.imagePreviewContainer}>
     {images.map((img, index) => (
-      <Image key={index} source={{ uri: img }} style={styles.imagePreview} />
+      <View key={index} style={styles.imageWrapper}>
+        <Image source={{ uri: img }} style={styles.imagePreview} />
+        <TouchableOpacity 
+          style={styles.removeButton} 
+          onPress={() => removeImage(index)}
+        >
+          <Text style={styles.removeButtonText}>✖️</Text>
+        </TouchableOpacity>
+      </View>
     ))}
   </ScrollView>
 )}
+
 
   
         <TextInput
@@ -254,6 +259,8 @@ if (!imageUrls) return;
   
 )}
 
+
+
 <View style={styles.manualColorInput}>
   <TextInput
     style={styles.colorInput}
@@ -272,7 +279,16 @@ if (!imageUrls) return;
   >
     <Text style={styles.addColorButtonText}>Add Color</Text>
   </TouchableOpacity>
+
+  {/* 🔥 Button to Open Color Picker Website */}
+  <TouchableOpacity 
+    style={styles.colorPickerButton} 
+    onPress={() => Linking.openURL('https://htmlcolorcodes.com/')}
+  >
+    <Text style={styles.colorPickerButtonText}>Click here for Color Code Reference</Text>
+  </TouchableOpacity>
 </View>
+
 
 
 {selectedColors.length > 0 && (
@@ -303,134 +319,84 @@ if (!imageUrls) return;
 }  
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#F5F5F5', // Soft background
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+  },
   container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#333',
     marginBottom: 20,
   },
   imagePicker: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: 150,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f0f0f0',
     marginBottom: 15,
   },
-  image: {
-    width: '100%',
-    height: '100%',
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
     borderRadius: 10,
+    marginRight: 8,
   },
   input: {
     width: '100%',
-    height: 40,
-    borderColor: 'gray',
+    height: 45,
     borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
     marginBottom: 10,
-    paddingHorizontal: 10,
   },
   pickerContainer: {
     width: '100%',
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
-    backgroundColor: 'white',
-  },
-  label: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  scrollContainer: {
-    paddingVertical: 20,
-    
-  },
-  
-  imagePreviewContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    marginRight: 10,
     borderRadius: 8,
+    backgroundColor: 'white',
+    marginBottom: 10,
   },
-  
-  labelContainer: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    width: '100%',
-  },
-  labelTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  labelText: {
-    color: '#555',
-  },
-  suggestionContainer: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    width: '100%',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 999,  // Make sure the popup appears above other elements
-  },
-  suggestionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  suggestionList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  suggestionItem: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 5,
-    marginBottom: 5,
-  },
-  suggestionText: {
-    color: '#333',
-  },
-  
   colorSection: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 5,
+    marginTop: 10,
     width: '100%',
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
   },
   colorTitle: {
     fontWeight: 'bold',
     marginBottom: 5,
+    color: '#333',
   },
   colorBox: {
     width: '100%',
     height: 40,
-    borderRadius: 5,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -438,78 +404,122 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   colorText: {
-    color: '#fff',
     fontWeight: 'bold',
+    color: '#333',
   },
-  
   colorSuggestionContainer: {
     marginTop: 10,
-    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 5,
+    borderRadius: 8,
+    padding: 10,
     width: '100%',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
-    zIndex: 999,
   },
   colorSuggestionList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   suggestionItem: {
-    borderRadius: 15,
+    borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginRight: 5,
-    marginBottom: 5,
-  },
-  suggestionText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  colorInput: {
-    flex: 1,
-    height: 40,
-    borderColor: 'gray',
+    paddingVertical: 6,
+    marginRight: 6,
+    marginBottom: 6,
     borderWidth: 1,
-    marginRight: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    borderColor: '#ddd',
   },
-  addColorButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#007bff',
-    borderRadius: 5,
-  },
-  addColorButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  
-  
   selectedColorsContainer: {
     marginTop: 10,
-    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 5,
+    borderRadius: 8,
+    padding: 10,
     width: '100%',
   },
   selectedColorsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  manualColorInput: {
-    flexDirection: 'row',
+  addColorButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  addColorButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  addListingButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 14,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    marginTop: 15,
+    width: '100%',
+    alignItems: 'center',
+  },
+  addListingButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+   manualColorInput: {
+  
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
+    marginBottom: 20,
+  },
+
+  colorInput: {
+    borderWidth: 1,        // Border thickness
+    borderColor: '#ccc',   // Border color (change to any color you prefer)
+    borderRadius: 8,       // Optional: Adds rounded corners
+    padding: 10,           // Adds space inside the container
+    backgroundColor: '#fff',
+  },
+
+  colorPickerButton: {
     marginTop: 10,
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
   
 });
+
 
 export default CreateListingScreen;

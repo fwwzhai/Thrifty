@@ -7,24 +7,39 @@ import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 const WishlistScreen = () => {
   const navigation = useNavigation();
   const [wishlistItems, setWishlistItems] = useState([]);
-
   useEffect(() => {
     const fetchWishlist = async () => {
       const user = auth.currentUser;
       if (!user) return;
-
+  
       const wishlistRef = collection(db, 'users', user.uid, 'wishlist');
       const wishlistSnap = await getDocs(wishlistRef);
-      const items = wishlistSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setWishlistItems(items);
+  
+      const filteredItems = [];
+  
+      for (const docSnap of wishlistSnap.docs) {
+        const data = docSnap.data();
+        const listingId = data?.listingId;
+  
+        if (!listingId) continue;
+  
+        const listingRef = doc(db, 'listings', listingId);
+        const listingSnap = await getDoc(listingRef);
+  
+        if (listingSnap.exists()) {
+          filteredItems.push({
+            id: docSnap.id,
+            ...data,
+          });
+        }
+      }
+  
+      setWishlistItems(filteredItems);
     };
-
+  
     fetchWishlist();
   }, []);
-
+  
 const renderItem = ({ item }) => {
   const handleNavigateToDetails = async () => {
     try {

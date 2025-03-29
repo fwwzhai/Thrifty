@@ -230,49 +230,57 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#a59079',
+    backgroundColor: '#A59079', // 🔥 Elegant beige-brown background
   },
   welcome: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#FFF', // 🔥 White text for contrast
     marginBottom: 10,
   },
   searchBar: {
     width: '100%',
     padding: 12,
-    borderColor: '#DDDDDD',
+    borderRadius: 25,
+    backgroundColor: '#F8F5F0', // 🔥 Light beige background
     borderWidth: 1,
-    borderRadius: 25,
-    backgroundColor: '#fff',
-    marginBottom: 15,
-  },
-  filterButton: {
-    backgroundColor: '#4A90E2',
-    padding: 10,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  filterButtonText: {
-    color: 'white',
+    borderColor: '#D9C2A6',
     fontSize: 16,
-    fontWeight: 'bold',
+    color: '#5A4E3C',
+    marginBottom: 15,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
   },
-  toggleButton: {
-    backgroundColor: '#444',
-    padding: 12,
-    borderRadius: 10,
-    flex: 1,
+  filterButton: {
+    backgroundColor: '#6D5F4A', // 🔥 Vibrant blue for contrast
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
     alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  toggleButton: {
+    backgroundColor: '#6D5F4A', // 🔥 Subtle warm brown tone
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    alignItems: 'center',
+    flex: 1,
+  },
+  activeButton: {
+    backgroundColor: '#4A90E2', // 🔥 Blue highlight for active state
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   listing: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
     borderRadius: 15,
     padding: 15,
     marginBottom: 15,
@@ -285,17 +293,18 @@ const styles = StyleSheet.create({
   listingTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3C3229',
     marginBottom: 5,
   },
   listingPrice: {
     fontSize: 16,
-    color: '#28a745',
+    color: '#28A745',
     marginBottom: 5,
+    fontWeight: '600',
   },
   listingSeller: {
     fontSize: 14,
-    color: '#888',
+    color: '#6D5F4A',
   },
   listingImage: {
     width: '100%',
@@ -305,9 +314,9 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 30,  // Adjusted to give space for Profile & Log Out
+    bottom: 30,
     right: 30,
-    backgroundColor: '#FF6F61',
+    backgroundColor: '#FF6F61', // 🔥 Strong red-orange for CTA
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -319,14 +328,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  addButtonText: {
+    color: '#FFF',
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
   profileButton: {
     position: 'absolute',
-    bottom: 110,  // Positioned above Add Button
+    bottom: 110,
     right: 30,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F8F5F0',
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderRadius: 25,  // More rounded for modern look
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -337,16 +351,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   profileButtonText: {
-    color: '#333',
+    color: '#3C3229',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
   logoutButton: {
     position: 'absolute',
-    bottom: 160,  // Positioned above Profile Button
+    bottom: 160,
     right: 30,
-    backgroundColor: '#f8d7da',
+    backgroundColor: '#F8D7DA',
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 25,
@@ -360,40 +373,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   logoutButtonText: {
-    color: '#721c24',
+    color: '#721C24',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  sortButton: {
-    backgroundColor: '#6c757d',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 15,
-    width: '100%',
-  },
-  sortButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  toggleButton: {
-    backgroundColor: '#4A90E2',
-    padding: 10,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  toggleButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  
-  
-
-
 });
+
 
 export default HomeScreen;
