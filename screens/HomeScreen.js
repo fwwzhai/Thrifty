@@ -157,7 +157,10 @@ useEffect(() => {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.welcome}>Welcome, {userData.name}!</Text>
+      <View style={styles.headerRow}>
+        <Image source={require('../assets/smallerbg.png')} style={styles.logo} />
+        <Text style={styles.welcome}>Thrifty </Text>
+      </View>
       <TextInput
         style={styles.searchBar}
         placeholder="Search items..."
@@ -226,158 +229,202 @@ useEffect(() => {
   );
 };
 
+// ...existing code...
+// ...existing code...
 const styles = StyleSheet.create({
-  container: {
+ container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#A59079', // 🔥 Elegant beige-brown background
+    padding: 18,
+    backgroundColor: '#f8fafc',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start', // Align left for a professional look
+    marginBottom: 24, // More space below header
+    paddingHorizontal: 4,
+  },
+ logo: {
+  width: 70,
+  height: 70,
+  resizeMode: 'contain',
+  marginRight: 74,
+  backgroundColor: '#fff', // makes it pop!
+  borderRadius: 12,        // soft corners
+  borderWidth: 1,
+  borderColor: '#e2e8f0',
+},
   welcome: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFF', // 🔥 White text for contrast
-    marginBottom: 10,
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#22223B',
+    letterSpacing: 0.5,
+    textAlign: 'left',
   },
   searchBar: {
     width: '100%',
-    padding: 12,
-    borderRadius: 25,
-    backgroundColor: '#F8F5F0', // 🔥 Light beige background
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#D9C2A6',
+    borderColor: '#e2e8f0',
     fontSize: 16,
-    color: '#5A4E3C',
-    marginBottom: 15,
+    color: '#22223B',
+    marginBottom: 16,
+    shadowColor: '#22223B',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: 16,
   },
   filterButton: {
-    backgroundColor: '#6D5F4A', // 🔥 Vibrant blue for contrast
+    backgroundColor: '#2563eb',
     paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     alignItems: 'center',
     flex: 1,
     marginRight: 10,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 2,
   },
   toggleButton: {
-    backgroundColor: '#6D5F4A', // 🔥 Subtle warm brown tone
+    backgroundColor: '#10b981',
     paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     alignItems: 'center',
     flex: 1,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 2,
   },
   activeButton: {
-    backgroundColor: '#4A90E2', // 🔥 Blue highlight for active state
+    backgroundColor: '#f59e42',
   },
   buttonText: {
-    color: '#FFF',
+    color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   listing: {
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 15,
-    shadowColor: '#000',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#22223B',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   listingTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3C3229',
-    marginBottom: 5,
+    fontWeight: '700',
+    color: '#22223B',
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   listingPrice: {
-    fontSize: 16,
-    color: '#28A745',
-    marginBottom: 5,
-    fontWeight: '600',
+    fontSize: 17,
+    color: '#2563eb',
+    marginBottom: 4,
+    fontWeight: '700',
   },
   listingSeller: {
     fontSize: 14,
-    color: '#6D5F4A',
+    color: '#10b981',
+    fontWeight: '500',
   },
   listingImage: {
     width: '100%',
-    height: 200,
+    height: 180,
     borderRadius: 10,
     marginBottom: 10,
+    backgroundColor: '#e2e8f0',
   },
   addButton: {
     position: 'absolute',
-    bottom: 30,
-    right: 30,
-    backgroundColor: '#FF6F61', // 🔥 Strong red-orange for CTA
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    bottom: 32,
+    right: 32,
+    backgroundColor: '#2563eb',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 6,
   },
   addButtonText: {
-    color: '#FFF',
-    fontSize: 30,
+    color: '#fff',
+    fontSize: 32,
     fontWeight: 'bold',
   },
   profileButton: {
     position: 'absolute',
-    bottom: 110,
-    right: 30,
-    backgroundColor: '#F8F5F0',
+    bottom: 100,
+    right: 32,
+    backgroundColor: '#fff',
     paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#22223B',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.10,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   profileButtonText: {
-    color: '#3C3229',
+    color: '#22223B',
     fontSize: 16,
     fontWeight: '600',
   },
   logoutButton: {
     position: 'absolute',
-    bottom: 160,
-    right: 30,
-    backgroundColor: '#F8D7DA',
+    bottom: 150,
+    right: 32,
+    backgroundColor: '#fff',
     paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#22223B',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.10,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   logoutButtonText: {
-    color: '#721C24',
+    color: '#ef4444',
     fontSize: 16,
     fontWeight: '600',
   },
 });
-
 
 export default HomeScreen;
