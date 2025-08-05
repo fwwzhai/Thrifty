@@ -13,7 +13,8 @@ const UserProfileScreen = ({ route, navigation }) => {
   const [isFollowing, setIsFollowing] = useState(false);
 const currentUser = auth.currentUser;
 
-
+const [followersCount, setFollowersCount] = useState(0);
+const [followingCount, setFollowingCount] = useState(0);
   // 🔥 Fetch User Data
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,6 +34,18 @@ const currentUser = auth.currentUser;
     fetchUser();
   }, [userId]);
 
+  useEffect(() => {
+  const fetchCounts = async () => {
+    if (userId) {
+      const followersSnap = await getDocs(collection(db, "users", userId, "followers"));
+      setFollowersCount(followersSnap.size);
+
+      const followingSnap = await getDocs(collection(db, "users", userId, "following"));
+      setFollowingCount(followingSnap.size);
+    }
+  };
+  fetchCounts();
+}, [userId, isFollowing]);
   // 🔥 Fetch User's Listings
   useEffect(() => {
     const fetchUserListings = async () => {
@@ -162,6 +175,17 @@ const currentUser = auth.currentUser;
           />
           <Text style={styles.name}>{userData.name}</Text>
           <Text style={styles.bio}>{userData.bio}</Text>
+            <View style={styles.countRow}>
+  <TouchableOpacity style={styles.countBox} onPress={() => navigation.navigate('FollowList', { userId, type: 'followers' })}>
+    <Text style={styles.countNumber}>{followersCount}</Text>
+    <Text style={styles.countLabel}>Followers</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.countBox} onPress={() => navigation.navigate('FollowList', { userId, type: 'following' })}>
+    <Text style={styles.countNumber}>{followingCount}</Text>
+    <Text style={styles.countLabel}>Following</Text>
+  </TouchableOpacity>
+</View>
+          
           {currentUser?.uid !== userId && (
   <TouchableOpacity 
     style={isFollowing ? styles.unfollowButton : styles.followButton} 
@@ -181,6 +205,24 @@ const currentUser = auth.currentUser;
 };
 
 const styles = StyleSheet.create({
+  countRow: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  marginVertical: 10,
+},
+countBox: {
+  alignItems: 'center',
+  marginHorizontal: 20,
+},
+countNumber: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#333',
+},
+countLabel: {
+  fontSize: 14,
+  color: '#555',
+},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
