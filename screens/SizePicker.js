@@ -43,39 +43,51 @@ const SizePicker = ({ selectedSize, setSelectedSize }) => {
 
             {/* Category Picker */}
             <Text style={styles.label}>Category</Text>
-            <Picker selectedValue={category} onValueChange={(val) => setCategory(val)}>
-              <Picker.Item label="Select Category" value="" />
-              {categories.map((item) => (
-                <Picker.Item key={item} label={item} value={item} />
-              ))}
-            </Picker>
+           
+<Picker
+  selectedValue={category}
+  onValueChange={(val) => setCategory(val)}
+  style={{ color: '#22223B', backgroundColor: '#fff' }}
+>
+  <Picker.Item label="Select Category" value="" />
+  {categories.map((item) => (
+    <Picker.Item key={item} label={item} value={item} />
+  ))}
+</Picker>
 
-            {/* Type Picker (only if not Free Size) */}
-            {category !== 'Free Size' && category && (
-              <>
-                <Text style={styles.label}>Type</Text>
-                <Picker selectedValue={type} onValueChange={(val) => setType(val)}>
-                  <Picker.Item label="Select Type" value="" />
-                  {types.map((item) => (
-                    <Picker.Item key={item} label={item} value={item} />
-                  ))}
-                </Picker>
-              </>
-            )}
+{/* Type Picker (only if not Free Size) */}
+{category !== 'Free Size' && category && (
+  <>
+    <Text style={styles.label}>Type</Text>
+    <Picker
+      selectedValue={type}
+      onValueChange={(val) => setType(val)}
+      style={{ color: '#22223B', backgroundColor: '#fff' }} // <-- Add this
+    >
+      <Picker.Item label="Select Type" value="" />
+      {types.map((item) => (
+        <Picker.Item key={item} label={item} value={item} />
+      ))}
+    </Picker>
+  </>
+)}
 
-            {/* Size Picker (only if type is selected) */}
-            {type && sizeOptions[type] && (
-              <>
-                <Text style={styles.label}>Size</Text>
-                <Picker selectedValue={size} onValueChange={(val) => setSize(val)}>
-                  <Picker.Item label="Select Size" value="" />
-                  {sizeOptions[type].map((item) => (
-                    <Picker.Item key={item} label={item} value={item} />
-                  ))}
-                </Picker>
-              </>
-            )}
-
+{/* Size Picker (only if type is selected) */}
+{type && sizeOptions[type] && (
+  <>
+    <Text style={styles.label}>Size</Text>
+    <Picker
+      selectedValue={size}
+      onValueChange={(val) => setSize(val)}
+      style={{ color: '#22223B', backgroundColor: '#fff' }} 
+    >
+      <Picker.Item label="Select Size" value="" />
+      {sizeOptions[type].map((item) => (
+        <Picker.Item key={item} label={item} value={item} />
+      ))}
+    </Picker>
+  </>
+)}
             {/* Buttons */}
             <View style={styles.buttonRow}>
               <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />

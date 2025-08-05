@@ -181,6 +181,14 @@ const [isViewingPurchaseHistory, setIsViewingPurchaseHistory] = useState(true); 
   </TouchableOpacity>
 </View>
 
+<TouchableOpacity
+  style={styles.settingsButton}
+  onPress={() => navigation.navigate('Settings')}
+>
+  <Icon name="cog" size={18} color="white" />
+  <Text style={styles.settingsButtonText}> Settings</Text>
+</TouchableOpacity>
+
 
           
       
@@ -346,6 +354,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
+  settingsButton: {
+  backgroundColor: '#6c757d',
+  padding: 10,
+  borderRadius: 25,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: 10,
+},
+settingsButtonText: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: '600',
+  marginLeft: 5,
+},
   
   
   

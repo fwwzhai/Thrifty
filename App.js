@@ -19,6 +19,11 @@ import PurchaseHistoryScreen from './screens/PurchaseHistoryScreen';
 import SoldHistoryScreen from './screens/SoldHistoryScreen';
 import PurchaseDetailsScreen from './screens/PurchaseDetailsScreen';
 import SoldDetailsScreen from './screens/SoldDetailsScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import AccountDetailsScreen from './screens/AccountDetailsScreen';
+import ChangeUsernameScreen from './screens/ChangeUsernameScreen';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
+import AddressBookScreen from './screens/AddressBookScreen';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,7 +63,11 @@ export default function App() {
           <Stack.Screen name="SoldHistory" component={SoldHistoryScreen} />
           <Stack.Screen name="PurchaseDetails" component={PurchaseDetailsScreen} />
           <Stack.Screen name="SoldDetails" component={SoldDetailsScreen} />
-
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+< Stack.Screen name="AccountDetails" component={AccountDetailsScreen} />
+          <Stack.Screen name="ChangeUsername" component={ChangeUsernameScreen} />
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+          <Stack.Screen name="AddressBook" component={AddressBookScreen} />
         </Stack.Navigator>
         </SafeAreaView>
       </NavigationContainer>
