@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal, Pressable } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { auth, db } from '../firebaseConfig';
 import { doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -14,6 +13,9 @@ const ListingDetailsScreen = ({ navigation }) => {
   const [user, setUser] = useState(null);
   const route = useRoute();
   const { listing } = route.params || {}; 
+  
+const [imageModalVisible, setImageModalVisible] = useState(false);
+const [selectedImage, setSelectedImage] = useState(null);
 
   const [sellerData, setSellerData] = useState(null); // 🔥 Store seller info here
 
@@ -170,6 +172,8 @@ const handleBuy = async () => {
         navigation.navigate('Payment', { listing });
       }
     }
+
+    
   ]);
 };
 
@@ -178,18 +182,20 @@ return (
   <ScrollView contentContainerStyle={styles.container}>
     <View style={styles.card}>
       {listing.imageUrl ? (
-        // 🔥 Display Single Image
-        <Image 
-          source={{ uri: listing.imageUrl }} 
-          style={styles.image} 
-        />
-      ) : Array.isArray(listing.imageUrls) && listing.imageUrls.length > 0 ? (
-        // 🔥 Display Multiple Images with Horizontal Scroll
-        listing.imageUrls.length === 1 ? (
+        <TouchableOpacity onPress={() => { setSelectedImage(listing.imageUrl); setImageModalVisible(true); }}>
           <Image 
-            source={{ uri: listing.imageUrls[0] }} 
+            source={{ uri: listing.imageUrl }} 
             style={styles.image} 
           />
+        </TouchableOpacity>
+      ) : Array.isArray(listing.imageUrls) && listing.imageUrls.length > 0 ? (
+        listing.imageUrls.length === 1 ? (
+          <TouchableOpacity onPress={() => { setSelectedImage(listing.imageUrls[0]); setImageModalVisible(true); }}>
+            <Image 
+              source={{ uri: listing.imageUrls[0] }} 
+              style={styles.image} 
+            />
+          </TouchableOpacity>
         ) : (
           <FlatList
             data={listing.imageUrls}
@@ -197,10 +203,12 @@ return (
             horizontal
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <Image 
-                source={{ uri: item }} 
-                style={styles.imageScrollable} 
-              />
+              <TouchableOpacity onPress={() => { setSelectedImage(item); setImageModalVisible(true); }}>
+                <Image 
+                  source={{ uri: item }} 
+                  style={styles.imageScrollable} 
+                />
+              </TouchableOpacity>
             )}
           />
         )
@@ -277,6 +285,22 @@ return (
         </TouchableOpacity>
       )}
     </View>
+
+    {/* 🔥 Image Modal */}
+    <Modal
+      visible={imageModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setImageModalVisible(false)}
+    >
+      <Pressable style={styles.modalOverlay} onPress={() => setImageModalVisible(false)}>
+        <Image
+          source={selectedImage ? { uri: selectedImage } : null}
+          style={styles.enlargedImage}
+          resizeMode="contain"
+        />
+      </Pressable>
+    </Modal>
   </ScrollView>
 );
 
@@ -420,6 +444,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     resizeMode: 'cover',
     backgroundColor: '#f0f0f0',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  enlargedImage: {
+    width: '90%',
+    height: '90%',
+    borderRadius: 10,
   },
   
   

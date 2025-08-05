@@ -3,6 +3,7 @@ import { Image, View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, A
 import { auth, db } from '../firebaseConfig';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { signOut, onAuthStateChanged  } from 'firebase/auth'; 
+import { Ionicons } from '@expo/vector-icons'; 
 
 const HomeScreen = ({ navigation, route }) => {
   const [listings, setListings] = useState([]);
@@ -14,7 +15,9 @@ const HomeScreen = ({ navigation, route }) => {
   const selectedConditions = filters.selectedConditions || [];
   const maxPrice = filters.maxPrice || '';
   const [followingList, setFollowingList] = useState([]);
-
+ const goToInbox = () => {
+  navigation.navigate('Inbox');
+};
   // 🔥 State for Sorting
 
   
@@ -156,11 +159,19 @@ useEffect(() => {
 
   
   return (
+
+    
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Image source={require('../assets/smallerbg.png')} style={styles.logo} />
-        <Text style={styles.welcome}>Thrifty </Text>
-      </View>
+      
+<View style={styles.headerRow}>
+  <View style={styles.headerCenter}>
+    <Image source={require('../assets/smallerbg.png')} style={styles.logo} />
+    <Text style={styles.welcome}>Thrifty</Text>
+  </View>
+  <TouchableOpacity style={styles.inboxButton} onPress={goToInbox}>
+    <Ionicons name="mail-outline" size={28} color="#2563eb" />
+  </TouchableOpacity>
+</View>
       <TextInput
         style={styles.searchBar}
         placeholder="Search items..."
@@ -237,30 +248,43 @@ const styles = StyleSheet.create({
     padding: 18,
     backgroundColor: '#f8fafc',
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start', // Align left for a professional look
-    marginBottom: 24, // More space below header
-    paddingHorizontal: 4,
-  },
- logo: {
-  width: 70,
-  height: 70,
+ headerRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: 24,
+  paddingHorizontal: 4,
+  position: 'relative',
+},
+headerCenter: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+inboxButton: {
+  position: 'absolute',
+  right: 0,
+  padding: 8,
+  zIndex: 10,
+},
+logo: {
+  width: 50,
+  height: 50,
   resizeMode: 'contain',
-  marginRight: 74,
-  backgroundColor: '#fff', // makes it pop!
-  borderRadius: 12,        // soft corners
+  marginRight: 10,
+  backgroundColor: '#fff',
+  borderRadius: 12,
   borderWidth: 1,
   borderColor: '#e2e8f0',
 },
-  welcome: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#22223B',
-    letterSpacing: 0.5,
-    textAlign: 'left',
-  },
+welcome: {
+  fontSize: 26,
+  fontWeight: '700',
+  color: '#22223B',
+  letterSpacing: 0.5,
+  textAlign: 'center',
+},
   searchBar: {
     width: '100%',
     padding: 14,

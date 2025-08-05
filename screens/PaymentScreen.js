@@ -4,13 +4,18 @@ import { CardField, useConfirmPayment } from '@stripe/stripe-react-native';
 import axios from 'axios';
 import { doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
+import { addDoc, collection } from 'firebase/firestore';
+
 
 const PaymentScreen = ({ route, navigation }) => {
   const { listing } = route.params;
   const [loading, setLoading] = useState(false);
   const { confirmPayment } = useConfirmPayment();
 
+
   const handlePayment = async () => {
+
+
     setLoading(true);
     try {
       const response = await axios.post('https://api-q7hlyxfraa-uc.a.run.app/createPaymentIntent', {
@@ -42,7 +47,16 @@ const PaymentScreen = ({ route, navigation }) => {
       } else if (paymentIntent) {
         Alert.alert('Payment successful', 'Your payment was successful!');
         console.log('Payment successful:', paymentIntent);
-  
+        const buyerDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+const buyerName = buyerDoc.exists() ? buyerDoc.data().name : 'a buyer';
+  await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
+  type: 'purchase',
+  message: `Your item "${listing.name}" was purchased by ${buyerName}.`,
+  listingId: listing.id,
+  buyerId: auth.currentUser.uid,
+  timestamp: new Date(),
+  read: false,
+});
         // 🔥 Update Firestore to mark the listing as SOLD
         const listingRef = doc(db, 'listings', listing.id);
         await updateDoc(listingRef, {
@@ -85,8 +99,28 @@ console.log('Purchase History updated for Buyer');
           timestamp: new Date()
         });
         console.log('Sold History updated for Seller');
-        
 
+        // ...after soldHistory setDoc...
+await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
+  type: 'purchase',
+  message: `Your item "${listing.name}" was purchased by ${auth.currentUser.displayName || 'a buyer'}.`,
+  listingId: listing.id,
+  buyerId: auth.currentUser.uid,
+  timestamp: new Date(),
+  read: false,
+});
+console.log('Inbox message sent to seller');
+        
+// After updating histories and before navigation.goBack()
+await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
+  type: 'purchase',
+  message: `Your item "${listing.name}" was purchased by ${auth.currentUser.displayName || 'a buyer'}.`,
+  listingId: listing.id,
+  buyerId: auth.currentUser.uid,
+  timestamp: new Date(),
+  read: false,
+});
+console.log('Inbox message sent to seller');
   
         // 🔥 Navigate back with a short delay
 setTimeout(() => {
