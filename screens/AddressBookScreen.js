@@ -8,12 +8,13 @@ const AddressBookScreen = () => {
   const [newAddress, setNewAddress] = useState('');
 
   const fetchAddresses = async () => {
-    const ref = collection(db, 'users', auth.currentUser.uid, 'addresses');
-    const snap = await getDocs(ref);
-    setAddresses(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
+  if (!auth.currentUser) return; // Prevent fetch if logged out
+  const ref = collection(db, 'users', auth.currentUser.uid, 'addresses');
+  const snap = await getDocs(ref);
+  setAddresses(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+};
 
-  useEffect(() => { fetchAddresses(); }, []);
+useEffect(() => { fetchAddresses(); }, []);
 
   const handleAdd = async () => {
   if (!newAddress) return;

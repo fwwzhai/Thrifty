@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { auth, db } from '../firebaseConfig';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
 
-const InboxScreen = () => {
+const InboxScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -16,6 +17,22 @@ const InboxScreen = () => {
     });
     return unsubscribe;
   }, []);
+
+  const handleDelete = async (id) => {
+    Alert.alert('Delete', 'Are you sure you want to delete this message?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'inbox', id));
+      }}
+    ]);
+  };
+
+  const handlePress = (item) => {
+  if (item.listingId && item.buyerId) {
+    navigation.navigate('ManageOrder', { listingId: item.listingId, buyerId: item.buyerId });
+  }
+};
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Inbox</Text>
@@ -23,14 +40,25 @@ const InboxScreen = () => {
         data={messages}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View style={[styles.message, !item.read && styles.unread]}>
-            <Text style={styles.text}>{item.message}</Text>
-            <Text style={styles.time}>
-              {item.timestamp?.toDate
-                ? item.timestamp.toDate().toLocaleString()
-                : ''}
-            </Text>
-          </View>
+          item.message ? (
+            <TouchableOpacity
+              style={[styles.message, !item.read && styles.unread]}
+              onPress={() => handlePress(item)}
+              activeOpacity={0.7}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.text}>{item.message}</Text>
+                <Text style={styles.time}>
+                  {item.timestamp?.toDate
+                    ? item.timestamp.toDate().toLocaleString()
+                    : ''}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
+                <Ionicons name="trash-outline" size={22} color="#ef4444" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ) : null
         )}
         ListEmptyComponent={<Text style={styles.empty}>No messages yet.</Text>}
       />
@@ -51,6 +79,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 2,
     elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   unread: {
     borderLeftWidth: 5,
@@ -60,6 +90,10 @@ const styles = StyleSheet.create({
   text: { fontSize: 16, color: '#22223B', marginBottom: 4 },
   time: { fontSize: 12, color: '#888' },
   empty: { color: '#888', textAlign: 'center', marginTop: 40 },
+  deleteBtn: {
+    marginLeft: 16,
+    padding: 4,
+  },
 });
 
 export default InboxScreen;

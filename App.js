@@ -26,6 +26,7 @@ import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import AddressBookScreen from './screens/AddressBookScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import InboxScreen from './screens/InboxScreen';
+import ManageOrderScreen from './screens/ManageOrderScreen'; // Import ManageOrderScreen
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -72,6 +73,10 @@ export default function App() {
           <Stack.Screen name="AddressBook" component={AddressBookScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Inbox" component={InboxScreen} />
+          <Stack.Screen name="ManageOrder" component={ManageOrderScreen} />
+          
+
+
         </Stack.Navigator>
         </SafeAreaView>
       </NavigationContainer>

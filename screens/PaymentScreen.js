@@ -101,9 +101,8 @@ console.log('Purchase History updated for Buyer');
         console.log('Sold History updated for Seller');
 
         // ...after soldHistory setDoc...
-await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
+await addDoc(collection(db, 'users', listing.userId), {
   type: 'purchase',
-  message: `Your item "${listing.name}" was purchased by ${auth.currentUser.displayName || 'a buyer'}.`,
   listingId: listing.id,
   buyerId: auth.currentUser.uid,
   timestamp: new Date(),
@@ -112,9 +111,8 @@ await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
 console.log('Inbox message sent to seller');
         
 // After updating histories and before navigation.goBack()
-await addDoc(collection(db, 'users', listing.userId, 'inbox'), {
+await addDoc(collection(db, 'users', listing.userId), {
   type: 'purchase',
-  message: `Your item "${listing.name}" was purchased by ${auth.currentUser.displayName || 'a buyer'}.`,
   listingId: listing.id,
   buyerId: auth.currentUser.uid,
   timestamp: new Date(),
