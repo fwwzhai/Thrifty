@@ -52,6 +52,12 @@ const SoldDetailsScreen = ({ route, navigation }) => {
         <Text style={styles.buyerName}>Buyer: <Text style={styles.buyerLink}>{buyerUsername}</Text></Text>
       </TouchableOpacity>
       <Text style={styles.date}>Date: {new Date(item.timestamp.seconds * 1000).toDateString()}</Text>
+      <TouchableOpacity
+        style={styles.manageButton}
+        onPress={() => navigation.navigate('ManageOrder', { listingId: item.listingId || item.id, buyerId: item.buyerId })}
+      >
+        <Text style={styles.manageButtonText}>Manage Order</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -104,6 +110,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     marginTop: 5,
+  },
+  manageButton: {
+    marginTop: 18,
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  manageButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
