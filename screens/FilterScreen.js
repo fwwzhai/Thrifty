@@ -41,131 +41,143 @@ const togglePriceSortOrder = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* 🔹 Sort Type Selection */}
-<Text style={styles.label}>Sort By:</Text>
-<View style={styles.grid}>
-  <TouchableOpacity 
-    style={[styles.sortButton, sortType === 'date' && styles.selectedSort]} 
-    onPress={() => setSortType('date')}
-  >
-    <Text style={styles.sortButtonText}>Date</Text>
-  </TouchableOpacity>
-
-  <TouchableOpacity 
-    style={[styles.sortButton, sortType === 'price' && styles.selectedSort]} 
-    onPress={() => setSortType('price')}
-  >
-    <Text style={styles.sortButtonText}>Price</Text>
-  </TouchableOpacity>
-</View>
-
-{/* 🔹 Sort Order Selection */}
-<Text style={styles.label}>Order:</Text>
-<TouchableOpacity 
-  style={styles.sortButton} 
-  onPress={sortType === 'date' ? toggleSortOrder : togglePriceSortOrder}
->
-  <Text style={styles.sortButtonText}>
-    {sortType === 'date' 
-      ? (sortOrder === 'desc' ? 'Recent First' : 'Oldest First') 
-      : (priceSortOrder === 'desc' ? 'Price: High to Low' : 'Price: Low to High')
-    }
-  </Text>
-</TouchableOpacity>
-
-      <Text style={styles.title}>Filters</Text>
-
-      {/* 🔹 Type Selection */}
-      <Text style={styles.label}>Type:</Text>
-      <View style={styles.grid}>
-        {["Shirt", "Hoodie", "Jacket", "Pants", "Jeans", "Shoes", "Backpack"].map(type => (
+      {/* Sort Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Sort</Text>
+        <View style={styles.row}>
           <TouchableOpacity 
-            key={type} 
-            style={[styles.filterButton, selectedTypes.includes(type) && styles.selectedFilter]} 
-            onPress={() => toggleType(type)}
+            style={[styles.sortButton, sortType === 'date' && styles.selectedSort]} 
+            onPress={() => setSortType('date')}
           >
-            <Text style={styles.filterText}>{type}</Text>
+            <Text style={styles.sortButtonText}>Date</Text>
           </TouchableOpacity>
-        ))}
+          <TouchableOpacity 
+            style={[styles.sortButton, sortType === 'price' && styles.selectedSort]} 
+            onPress={() => setSortType('price')}
+          >
+            <Text style={styles.sortButtonText}>Price</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.sortOrderButton} 
+            onPress={sortType === 'date' ? toggleSortOrder : togglePriceSortOrder}
+          >
+            <Text style={styles.sortOrderText}>
+              {sortType === 'date' 
+                ? (sortOrder === 'desc' ? 'Recent First' : 'Oldest First') 
+                : (priceSortOrder === 'desc' ? 'High to Low' : 'Low to High')
+              }
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* 🔹 Condition Selection */}
-      <Text style={styles.label}>Condition:</Text>
-      <View style={styles.grid}>
-        {["New", "Opened - Unused", "Used - Very Good", "Used - Good", "Used - Satisfactory"].map(condition => (
-          <TouchableOpacity 
-            key={condition} 
-            style={[styles.filterButton, selectedConditions.includes(condition) && styles.selectedFilter]} 
-            onPress={() => toggleCondition(condition)}
-          >
-            <Text style={styles.filterText}>{condition}</Text>
-          </TouchableOpacity>
-        ))}
+      {/* Type Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Type</Text>
+        <View style={styles.grid}>
+          {["Shirt", "Hoodie", "Jacket", "Pants", "Jeans", "Shoes", "Backpack"].map(type => (
+            <TouchableOpacity 
+              key={type} 
+              style={[styles.filterButton, selectedTypes.includes(type) && styles.selectedFilter]} 
+              onPress={() => toggleType(type)}
+            >
+              <Text style={[styles.filterText, selectedTypes.includes(type) && styles.selectedFilterText]}>{type}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
-      {/* 🔹 Max Price Input */}
-      <Text style={styles.label}>Max Price (RM):</Text>
-      <TextInput 
-        style={styles.input} 
-        placeholder="Enter max price" 
-        keyboardType="numeric"
-        value={maxPrice} 
-        onChangeText={setMaxPrice} 
-      />
+      {/* Condition Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Condition</Text>
+        <View style={styles.grid}>
+          {["New", "Opened - Unused", "Used - Very Good", "Used - Good", "Used - Satisfactory"].map(condition => (
+            <TouchableOpacity 
+              key={condition} 
+              style={[styles.filterButton, selectedConditions.includes(condition) && styles.selectedFilter]} 
+              onPress={() => toggleCondition(condition)}
+            >
+              <Text style={[styles.filterText, selectedConditions.includes(condition) && styles.selectedFilterText]}>{condition}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
-        {/* 🔹 Color Selection */}
-<Text style={styles.label}>Color:</Text>
-<View style={styles.grid}>
-  {[
-    "rgb(106, 84, 69)", 
-    "rgb(202, 189, 181)", 
-    "rgb(84, 78, 58)", 
-    "rgb(69, 64, 45)",
-    "rgb(34, 32, 18)",
-    "#627",
-    "#000000", // Black
-    "#FFFFFF"  // White
-  ].map(color => (
-    <TouchableOpacity 
-      key={color} 
-      style={[
-        styles.colorCircle, 
-        { backgroundColor: color },
-        selectedColors.includes(color) && styles.selectedColor
-      ]}
-      onPress={() => {
-        setSelectedColors(prev =>
-          prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
-        );
-      }}
-    />
-  ))}
-</View>
+      {/* Price Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Max Price (RM)</Text>
+        <TextInput 
+          style={styles.input} 
+          placeholder="Enter max price" 
+          keyboardType="numeric"
+          value={maxPrice} 
+          onChangeText={setMaxPrice} 
+        />
+      </View>
 
-      {/* 🔥 Apply Filters */}
-      {/* 🔥 Apply Filters */}
-<TouchableOpacity 
-  style={styles.applyButton} 
-  onPress={() => {
-      navigation.navigate('Home', { 
-        filters: { 
-          selectedTypes, 
-          selectedConditions, 
-          selectedColors, 
-          maxPrice, 
-          sortType,        // 🔥 Pass Sort Type
-          sortOrder, 
-          priceSortOrder 
-        }, 
-        userData: route.params?.userData
-      });
-    }}
->
-  <Text style={styles.applyButtonText}>Apply Filters</Text>
-</TouchableOpacity>
+      {/* Color Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Color</Text>
+        <View style={styles.grid}>
+          {/*
+          "rgb(106, 84, 69)", 
+          "rgb(202, 189, 181)", 
+          "rgb(84, 78, 58)", 
+          "rgb(69, 64, 45)",
+          "rgb(34, 32, 18)",
+          "#627",
+          "#000000",
+          "#FFFFFF"
+          */}
+          {Object.entries({
+            "rgb(106, 84, 69)": "Brown",
+            "rgb(202, 189, 181)": "Beige",
+            "rgb(84, 78, 58)": "Dark Brown",
+            "rgb(69, 64, 45)": "Olive",
+            "rgb(34, 32, 18)": "Black Olive",
+            "#627": "Dark Slate",
+            "#000000": "Black",
+            "#FFFFFF": "White"
+          }).map(([color, label]) => (
+            <TouchableOpacity 
+              key={color} 
+              style={[
+                styles.colorCircle, 
+                { backgroundColor: color },
+                selectedColors.includes(color) && styles.selectedColor
+              ]}
+              onPress={() => {
+                setSelectedColors(prev =>
+                  prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+                );
+              }}
+              accessibilityLabel={`Select ${label} color`}
+            />
+          ))}
+        </View>
+      </View>
 
+      {/* Action Buttons */}
+      <TouchableOpacity 
+        style={styles.applyButton} 
+        onPress={() => {
+          navigation.navigate('Home', { 
+            filters: { 
+              selectedTypes, 
+              selectedConditions, 
+              selectedColors, 
+              maxPrice, 
+              sortType,
+              sortOrder, 
+              priceSortOrder 
+            }, 
+            userData: route.params?.userData
+          });
+        }}
+      >
+        <Text style={styles.applyButtonText}>Apply Filters</Text>
+      </TouchableOpacity>
 
-      {/* 🔥 Reset Filters */}
       <TouchableOpacity 
         style={styles.resetButton} 
         onPress={() => {
@@ -184,66 +196,110 @@ const togglePriceSortOrder = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    alignItems: 'stretch',
+  },
+  card: {
     backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#22223B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#2563eb',
+  },
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
+  sortButton: {
+    backgroundColor: '#e0e7ff',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    marginRight: 10,
+    marginBottom: 8,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginVertical: 8,
-    alignSelf: 'flex-start',
+  selectedSort: {
+    backgroundColor: '#2563eb',
+  },
+  sortButtonText: {
+    color: '#22223B',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  sortOrderButton: {
+    backgroundColor: '#f59e42',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  sortOrderText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     marginBottom: 10,
   },
-  colorCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    margin: 5,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  selectedColor: {
-    borderWidth: 3,
-    borderColor: '#000',
-  },
-  
   filterButton: {
-    padding: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#e2e8f0',
     borderRadius: 8,
     backgroundColor: '#f8f8f8',
     margin: 5,
     alignItems: 'center',
-    width: '45%', // 🔥 Keeps buttons aligned in a 2-column grid
   },
   selectedFilter: {
-    backgroundColor: '#007bff',
-    borderColor: '#007bff',
+    backgroundColor: '#2563eb',
+    borderColor: '#2563eb',
   },
   filterText: {
-    color: 'black',
+    color: '#22223B',
     fontSize: 14,
+  },
+  selectedFilterText: {
+    color: '#fff',
+    fontWeight: '700',
   },
   input: {
     width: '100%',
     padding: 10,
-    borderColor: 'gray',
+    borderColor: '#e2e8f0',
     borderWidth: 1,
     borderRadius: 10,
-    marginBottom: 15,
-    textAlign: 'center',
+    marginBottom: 5,
+    backgroundColor: '#f8f8f8',
+    fontSize: 15,
+  },
+  colorCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    margin: 5,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+  },
+  selectedColor: {
+    borderWidth: 3,
+    borderColor: '#2563eb',
   },
   applyButton: {
     backgroundColor: '#28a745',
@@ -252,6 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     width: '100%',
+    elevation: 2,
   },
   applyButtonText: {
     color: 'white',
@@ -264,26 +321,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     width: '100%',
+    elevation: 2,
   },
   resetButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  sortButton: {
-    backgroundColor: '#6c757d',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 15,
-    width: '100%',
-  },
-  sortButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  
 });
 
 export default FilterScreen;

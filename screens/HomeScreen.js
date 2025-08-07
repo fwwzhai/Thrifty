@@ -39,6 +39,7 @@ const HomeScreen = ({ navigation, route }) => {
 
 
 useEffect(() => {
+   if (!auth.currentUser) return;
   let unsubscribeListings;
   let unsubscribeFollowing;
 

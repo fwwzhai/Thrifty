@@ -101,24 +101,10 @@ console.log('Purchase History updated for Buyer');
         console.log('Sold History updated for Seller');
 
         // ...after soldHistory setDoc...
-await addDoc(collection(db, 'users', listing.userId), {
-  type: 'purchase',
-  listingId: listing.id,
-  buyerId: auth.currentUser.uid,
-  timestamp: new Date(),
-  read: false,
-});
-console.log('Inbox message sent to seller');
+
         
 // After updating histories and before navigation.goBack()
-await addDoc(collection(db, 'users', listing.userId), {
-  type: 'purchase',
-  listingId: listing.id,
-  buyerId: auth.currentUser.uid,
-  timestamp: new Date(),
-  read: false,
-});
-console.log('Inbox message sent to seller');
+
   
         // 🔥 Navigate back with a short delay
 setTimeout(() => {
