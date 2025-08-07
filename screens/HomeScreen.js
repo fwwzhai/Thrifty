@@ -14,6 +14,10 @@ const HomeScreen = ({ navigation, route }) => {
   const selectedTypes = filters.selectedTypes || [];
   const selectedConditions = filters.selectedConditions || [];
   const maxPrice = filters.maxPrice || '';
+  const selectedGender = filters.selectedGender || '';
+const selectedType = filters.selectedType || '';
+const selectedSize = filters.selectedSize || '';
+
   const [followingList, setFollowingList] = useState([]);
  const goToInbox = () => {
   navigation.navigate('Inbox');
@@ -125,10 +129,43 @@ useEffect(() => {
       item.colors?.some(color => selectedColors.includes(color));
 
     const matchesFollowing = !filters.showFollowing || followingList.includes(item.userId);
-    
+   
+const matchesSize = (() => {
+  const gender = selectedGender.trim();
+  const type = selectedType.trim();
+  const size = selectedSize.trim();
+  const listingSize = item.size?.trim() || '';
+
+  if (!gender && !type && !size) return true;
+  if (gender && !type && !size) {
+    return listingSize.toLowerCase().startsWith(gender.toLowerCase());
+  }
+  if (gender && type && !size) {
+    return listingSize.toLowerCase().startsWith(`${gender} - ${type}`.toLowerCase());
+  }
+  if (gender && type && size) {
+    return listingSize.toLowerCase() === `${gender} - ${type} - ${size}`.toLowerCase();
+  }
+  if (!gender && type && !size) {
+    return listingSize.toLowerCase().includes(type.toLowerCase());
+  }
+  if (!gender && !type && size) {
+    return listingSize.toLowerCase().endsWith(size.toLowerCase());
+  }
+  return true;
+})();
 
     // 🔥 Combine all conditions including Following
-    return matchesSearchQuery && matchesType && matchesCondition && matchesMaxPrice && matchesColor && matchesFollowing;
+ return (
+      matchesSearchQuery &&
+      matchesType &&
+      matchesCondition &&
+      matchesMaxPrice &&
+      matchesColor &&
+      matchesFollowing &&
+    
+      matchesSize
+    );
   })
   .sort((a, b) => {
     // 🔥 Sort by Date

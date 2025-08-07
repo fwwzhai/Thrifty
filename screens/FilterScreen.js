@@ -9,6 +9,9 @@ const FilterScreen = ({ navigation, route }) => {
   const [selectedConditions, setSelectedConditions] = useState(currentFilters.selectedConditions || []);
   const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice || '');
   const [selectedColors, setSelectedColors] = useState(currentFilters.selectedColors || []);
+  const [selectedGender, setSelectedGender] = useState(currentFilters.selectedGender || '');
+const [selectedType, setSelectedType] = useState(currentFilters.selectedType || '');
+const [selectedSize, setSelectedSize] = useState(currentFilters.selectedSize || '');
   // 🔥 New State for Sort Order
 const [sortOrder, setSortOrder] = useState('desc'); // Default: Recent First
 const [priceSortOrder, setPriceSortOrder] = useState('desc');
@@ -156,23 +159,122 @@ const togglePriceSortOrder = () => {
           ))}
         </View>
       </View>
+      {/* Size Filter Section */}
+<View style={styles.card}>
+  <Text style={styles.sectionTitle}>Size</Text>
+  {/* Gender */}
+  <Text style={styles.sheetLabel}>Gender</Text>
+  <View style={styles.chipRow}>
+    {['Man', 'Woman', 'Kids', 'Free Size'].map(gender => (
+      <TouchableOpacity
+        key={gender}
+        style={[
+          styles.chip,
+          selectedGender === gender && styles.chipSelected
+        ]}
+        onPress={() => {
+          setSelectedGender(gender);
+          setSelectedType('');
+          setSelectedSize('');
+        }}
+      >
+        <Text style={[
+          styles.chipText,
+          selectedGender === gender && styles.chipTextSelected
+        ]}>{gender}</Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+  {/* Type */}
+  {selectedGender !== 'Free Size' && selectedGender && (
+    <>
+      <Text style={styles.sheetLabel}>Type</Text>
+      <View style={styles.chipRow}>
+        {['Shirt', 'Pants', 'Shoes'].map(type => (
+          <TouchableOpacity
+            key={type}
+            style={[
+              styles.chip,
+              selectedType === type && styles.chipSelected
+            ]}
+            onPress={() => {
+              setSelectedType(type);
+              setSelectedSize('');
+            }}
+          >
+            <Text style={[
+              styles.chipText,
+              selectedType === type && styles.chipTextSelected
+            ]}>{type}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </>
+  )}
+  {/* Size */}
+  {selectedType && (
+    <>
+      <Text style={styles.sheetLabel}>Size</Text>
+      <View style={styles.chipRow}>
+        {(selectedType === 'Shirt' ? ['S', 'M', 'L', 'XL', 'XXL']
+          : selectedType === 'Pants' ? ['Waist 28', 'Waist 30', 'Waist 32', 'Waist 34', 'Waist 36']
+          : ['UK 6', 'UK 6.5', 'UK 7', 'UK 7.5', 'UK 8', 'UK 8.5', 'UK 9', 'UK 9.5', 'UK 10']
+        ).map(size => (
+          <TouchableOpacity
+            key={size}
+            style={[
+              styles.chip,
+              selectedSize === size && styles.chipSelected
+            ]}
+            onPress={() => setSelectedSize(size)}
+          >
+            <Text style={[
+              styles.chipText,
+              selectedSize === size && styles.chipTextSelected
+            ]}>{size}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </>
+  )}
+  {/* Free Size */}
+  {selectedGender === 'Free Size' && (
+    <View style={styles.chipRow}>
+      <TouchableOpacity
+        style={[
+          styles.chip,
+          selectedSize === 'Free Size' && styles.chipSelected
+        ]}
+        onPress={() => setSelectedSize('Free Size')}
+      >
+        <Text style={[
+          styles.chipText,
+          selectedSize === 'Free Size' && styles.chipTextSelected
+        ]}>Free Size</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
 
       {/* Action Buttons */}
       <TouchableOpacity 
         style={styles.applyButton} 
         onPress={() => {
           navigation.navigate('Home', { 
-            filters: { 
-              selectedTypes, 
-              selectedConditions, 
-              selectedColors, 
-              maxPrice, 
-              sortType,
-              sortOrder, 
-              priceSortOrder 
-            }, 
-            userData: route.params?.userData
-          });
+  filters: { 
+    selectedTypes, 
+    selectedConditions, 
+    selectedColors, 
+    maxPrice, 
+    sortType,
+    sortOrder, 
+    priceSortOrder,
+    selectedGender,
+    selectedType,
+    selectedSize
+  }, 
+  userData: route.params?.userData
+});
         }}
       >
         <Text style={styles.applyButtonText}>Apply Filters</Text>
@@ -185,6 +287,9 @@ const togglePriceSortOrder = () => {
           setSelectedConditions([]);
           setSelectedColors([]);
           setMaxPrice('');
+          setSelectedGender('');
+          setSelectedType('');    
+          setSelectedSize('');
         }}
       >
         <Text style={styles.resetButtonText}>Reset Filters</Text>
@@ -301,6 +406,39 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#2563eb',
   },
+  chipRow: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  marginBottom: 8,
+},
+chip: {
+  backgroundColor: '#f3f4f6',
+  borderRadius: 20,
+  paddingVertical: 8,
+  paddingHorizontal: 18,
+  margin: 5,
+  borderWidth: 1,
+  borderColor: '#e2e8f0',
+},
+chipSelected: {
+  backgroundColor: '#2563eb',
+  borderColor: '#2563eb',
+},
+chipText: {
+  color: '#22223B',
+  fontWeight: '600',
+  fontSize: 15,
+},
+chipTextSelected: {
+  color: '#fff',
+},
+sheetLabel: {
+  fontWeight: '600',
+  color: '#22223B',
+  marginTop: 10,
+  marginBottom: 4,
+  fontSize: 15,
+},
   applyButton: {
     backgroundColor: '#28a745',
     padding: 15,
