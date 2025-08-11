@@ -17,7 +17,63 @@ const [sortOrder, setSortOrder] = useState('desc'); // Default: Recent First
 const [priceSortOrder, setPriceSortOrder] = useState('desc');
 const [sortType, setSortType] = useState('date'); // Default: Sort by Date
 
-
+const colorGroups = [
+  {
+    name: 'Blue',
+    shades: [
+      { name: 'Light Blue', value: '#90cdf4' },
+      { name: 'Blue', value: '#2563eb' },
+      { name: 'Dark Blue', value: '#1e3a8a' },
+    ],
+  },
+  {
+    name: 'Green',
+    shades: [
+      { name: 'Light Green', value: '#bbf7d0' },
+      { name: 'Green', value: '#10b981' },
+      { name: 'Dark Green', value: '#065f46' },
+    ],
+  },
+  {
+    name: 'Red',
+    shades: [
+      { name: 'Light Red', value: '#fca5a5' },
+      { name: 'Red', value: '#ef4444' },
+      { name: 'Dark Red', value: '#991b1b' },
+    ],
+  },
+  {
+    name: 'Yellow',
+    shades: [
+      { name: 'Light Yellow', value: '#fef9c3' },
+      { name: 'Yellow', value: '#FFD600' },
+      { name: 'Dark Yellow', value: '#b59f3b' },
+    ],
+  },
+  {
+    name: 'Brown',
+    shades: [
+      { name: 'Light Brown', value: '#d2b48c' },
+      { name: 'Brown', value: '#8B4513' },
+      { name: 'Dark Brown', value: '#5c4033' },
+    ],
+  },
+  {
+    name: 'Grey',
+    shades: [
+      { name: 'Light Grey', value: '#e5e7eb' },
+      { name: 'Grey', value: '#808080' },
+      { name: 'Dark Grey', value: '#374151' },
+    ],
+  },
+  {
+    name: 'Black/White',
+    shades: [
+      { name: 'White', value: '#FFFFFF' },
+      { name: 'Black', value: '#000000' },
+    ],
+  },
+];
 // 🔥 Toggle Sort Order
 const toggleSortOrder = () => {
   setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
@@ -118,47 +174,40 @@ const togglePriceSortOrder = () => {
         />
       </View>
 
+
       {/* Color Section */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Color</Text>
-        <View style={styles.grid}>
-          {/*
-          "rgb(106, 84, 69)", 
-          "rgb(202, 189, 181)", 
-          "rgb(84, 78, 58)", 
-          "rgb(69, 64, 45)",
-          "rgb(34, 32, 18)",
-          "#627",
-          "#000000",
-          "#FFFFFF"
-          */}
-          {Object.entries({
-            "rgb(106, 84, 69)": "Brown",
-            "rgb(202, 189, 181)": "Beige",
-            "rgb(84, 78, 58)": "Dark Brown",
-            "rgb(69, 64, 45)": "Olive",
-            "rgb(34, 32, 18)": "Black Olive",
-            "#627": "Dark Slate",
-            "#000000": "Black",
-            "#FFFFFF": "White"
-          }).map(([color, label]) => (
-            <TouchableOpacity 
-              key={color} 
+     <View style={styles.card}>
+  <Text style={styles.sectionTitle}>Color</Text>
+  <View style={styles.colorPickerGrid}>
+    {colorGroups.map(group => (
+      <View key={group.name} style={styles.colorGroup}>
+        <Text style={styles.groupLabel}>{group.name}</Text>
+        <View style={styles.shadeRow}>
+          {group.shades.map(shade => (
+            <TouchableOpacity
+              key={shade.value}
               style={[
-                styles.colorCircle, 
-                { backgroundColor: color },
-                selectedColors.includes(color) && styles.selectedColor
+                styles.colorSwatch,
+                selectedColors.includes(shade.value) && styles.selectedSwatch
               ]}
               onPress={() => {
                 setSelectedColors(prev =>
-                  prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+                  prev.includes(shade.value)
+                    ? prev.filter(c => c !== shade.value)
+                    : [...prev, shade.value]
                 );
               }}
-              accessibilityLabel={`Select ${label} color`}
-            />
+            >
+              <View style={[styles.swatchCircle, { backgroundColor: shade.value }]} />
+              <Text style={styles.swatchLabel}>{shade.name}</Text>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
+    ))}
+  </View>
+</View>
+
       {/* Size Filter Section */}
 <View style={styles.card}>
   <Text style={styles.sectionTitle}>Size</Text>
@@ -466,6 +515,43 @@ sheetLabel: {
     fontSize: 18,
     fontWeight: 'bold',
   },
+  colorPickerGrid: {
+  marginVertical: 10,
+},
+colorGroup: {
+  marginBottom: 18,
+},
+groupLabel: {
+  fontWeight: 'bold',
+  fontSize: 15,
+  color: '#333',
+  marginBottom: 6,
+  marginLeft: 4,
+},
+shadeRow: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+},
+colorSwatch: {
+  alignItems: 'center',
+  margin: 8,
+},
+swatchCircle: {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  borderWidth: 2,
+  borderColor: '#eee',
+  marginBottom: 4,
+},
+selectedSwatch: {
+  borderColor: '#2563eb',
+  borderWidth: 2,
+},
+swatchLabel: {
+  fontSize: 12,
+  color: '#333',
+},
 });
 
 export default FilterScreen;

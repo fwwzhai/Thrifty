@@ -209,30 +209,30 @@ const PaymentScreen = ({ route, navigation }) => {
         </View>
 
         <Text style={styles.paymentLabel}>Choose Payment Method:</Text>
-        <TouchableOpacity
-          style={styles.paymentButton}
-          onPress={handleCardPayment}
-        >
-          <Text style={styles.paymentText}>Pay with Card</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.paymentButton}
-          onPress={() => handleDummyPayment('TNG')}
-        >
-          <Text style={styles.paymentText}>Pay with TNG (Dummy)</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.paymentButton}
-          onPress={() => handleDummyPayment('FPX')}
-        >
-          <Text style={styles.paymentText}>Pay with FPX (Dummy)</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.paymentButton, styles.codButton]}
-          onPress={handleCashOnDelivery}
-        >
-          <Text style={styles.paymentText}>Cash on Delivery</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.paymentButton} onPress={handleCardPayment}>
+  <View style={styles.paymentRow}>
+    <Image source={require('../assets/card.jpg')} style={styles.paymentLogo} />
+    <Text style={styles.paymentText}>Pay with Card</Text>
+  </View>
+</TouchableOpacity>
+<TouchableOpacity style={styles.paymentButton} onPress={() => handleDummyPayment('TNG')}>
+  <View style={styles.paymentRow}>
+    <Image source={require('../assets/tng.png')} style={styles.paymentLogo} />
+    <Text style={styles.paymentText}>Pay with TNG </Text>
+  </View>
+</TouchableOpacity>
+<TouchableOpacity style={styles.paymentButton} onPress={() => handleDummyPayment('FPX')}>
+  <View style={styles.paymentRow}>
+    <Image source={require('../assets/fpx.png')} style={styles.paymentLogo} />
+    <Text style={styles.paymentText}>Pay with FPX </Text>
+  </View>
+</TouchableOpacity>
+<TouchableOpacity style={[styles.paymentButton, styles.codButton]} onPress={handleCashOnDelivery}>
+  <View style={styles.paymentRow}>
+    <Image source={require('../assets/cod.png')} style={styles.paymentLogo} />
+    <Text style={styles.paymentText}>Cash on Delivery</Text>
+  </View>
+</TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -349,6 +349,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
   },
+  paymentRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+paymentLogo: {
+  width: 28,
+  height: 28,
+  marginRight: 10,
+},
   paymentLabel: {
     fontSize: 16,
     fontWeight: 'bold',
