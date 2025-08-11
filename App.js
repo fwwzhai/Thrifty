@@ -25,6 +25,7 @@ import ChangeUsernameScreen from './screens/ChangeUsernameScreen';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import AddressBookScreen from './screens/AddressBookScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
+import CardScreen from './screens/CardScreen';
 import InboxScreen from './screens/InboxScreen';
 import ManageOrderScreen from './screens/ManageOrderScreen'; // Import ManageOrderScreen
 import { StatusBar } from 'expo-status-bar';
@@ -74,7 +75,7 @@ export default function App() {
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="Inbox" component={InboxScreen} />
           <Stack.Screen name="ManageOrder" component={ManageOrderScreen} />
-          
+          <Stack.Screen name="Card" component={CardScreen} />
 
 
         </Stack.Navigator>

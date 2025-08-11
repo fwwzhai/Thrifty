@@ -34,6 +34,8 @@ const [size, setSize] = useState('');
   
 const [colors, setColors] = useState([]);
 const [showSuggestions, setShowSuggestions] = useState(false);
+const [deliveryPaidBySeller, setDeliveryPaidBySeller] = useState(true); // true = seller pays, false = buyer pays
+const [deliveryFee, setDeliveryFee] = useState('');
 
 // Define clothing types for matching
 const clothingTypes = ["Shirt", "Hoodie", "Jacket", "Pants", "Jeans", "Shoes", "Backpack"];
@@ -158,6 +160,8 @@ if (!imageUrls) return;
         size,
         labels,
         colors: selectedColors,  // 🔥 Store multiple selected colors
+        deliveryPaidBySeller,
+  deliveryFee: deliveryPaidBySeller ? 0 : parseFloat(deliveryFee) || 0,
         createdAt: new Date(),
       });
       
@@ -261,34 +265,28 @@ if (!imageUrls) return;
 
 
 
-<View style={styles.manualColorInput}>
-  <TextInput
-    style={styles.colorInput}
-    placeholder="Enter Color (e.g., #FFFFFF)"
-    onChangeText={(text) => setColor(text)}
-    value={color}
-  />
-  <TouchableOpacity
-    style={styles.addColorButton}
-    onPress={() => {
-      if (color && !selectedColors.includes(color)) {
-        setSelectedColors([...selectedColors, color]);
-        setColor('');
-      }
-    }}
-  >
-    <Text style={styles.addColorButtonText}>Add Color</Text>
-  </TouchableOpacity>
-
-  {/* 🔥 Button to Open Color Picker Website */}
-  <TouchableOpacity 
-    style={styles.colorPickerButton} 
-    onPress={() => Linking.openURL('https://htmlcolorcodes.com/')}
-  >
-    <Text style={styles.colorPickerButtonText}>Click here for Color Code Reference</Text>
-  </TouchableOpacity>
+<View style={styles.colorPickerGrid}>
+  {colorGroups.map(group => (
+    <View key={group.name} style={styles.colorGroup}>
+      <Text style={styles.groupLabel}>{group.name}</Text>
+      <View style={styles.shadeRow}>
+        {group.shades.map(shade => (
+          <TouchableOpacity
+            key={shade.value}
+            style={[
+              styles.colorSwatch,
+              selectedColors.includes(shade.value) && styles.selectedSwatch
+            ]}
+            onPress={() => handleColorSelect(shade.value)}
+          >
+            <View style={[styles.swatchCircle, { backgroundColor: shade.value }]} />
+            <Text style={styles.swatchLabel}>{shade.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  ))}
 </View>
-
 
 
 {selectedColors.length > 0 && (
@@ -308,6 +306,37 @@ if (!imageUrls) return;
   </View>
 )}
 
+<View style={{ width: '100%', marginBottom: 15 }}>
+  <Text style={{ fontWeight: 'bold', marginBottom: 5, color: '#333' }}>Delivery Fee</Text>
+  <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+    <TouchableOpacity
+      style={[
+        { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', marginRight: 5, backgroundColor: deliveryPaidBySeller ? '#2563eb' : '#eee' }
+      ]}
+      onPress={() => setDeliveryPaidBySeller(true)}
+    >
+      <Text style={{ color: deliveryPaidBySeller ? '#fff' : '#333', fontWeight: 'bold' }}>Seller Pays (Free for Buyer)</Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      style={[
+        { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', marginLeft: 5, backgroundColor: !deliveryPaidBySeller ? '#2563eb' : '#eee' }
+      ]}
+      onPress={() => setDeliveryPaidBySeller(false)}
+    >
+      <Text style={{ color: !deliveryPaidBySeller ? '#fff' : '#333', fontWeight: 'bold' }}>Buyer Pays</Text>
+    </TouchableOpacity>
+  </View>
+  {!deliveryPaidBySeller && (
+    <TextInput
+      style={styles.input}
+      placeholder="Enter delivery fee (RM)"
+      value={deliveryFee}
+      onChangeText={setDeliveryFee}
+      keyboardType="numeric"
+    />
+  )}
+</View>
+
         <Button 
           title={uploading ? "Uploading..." : "Add Listing"} 
           onPress={handleAddListing} 
@@ -317,6 +346,64 @@ if (!imageUrls) return;
     </ScrollView>
   );
 }  
+
+const colorGroups = [
+  {
+    name: 'Blue',
+    shades: [
+      { name: 'Light Blue', value: '#90cdf4' },
+      { name: 'Blue', value: '#2563eb' },
+      { name: 'Dark Blue', value: '#1e3a8a' },
+    ],
+  },
+  {
+    name: 'Green',
+    shades: [
+      { name: 'Light Green', value: '#bbf7d0' },
+      { name: 'Green', value: '#10b981' },
+      { name: 'Dark Green', value: '#065f46' },
+    ],
+  },
+  {
+    name: 'Red',
+    shades: [
+      { name: 'Light Red', value: '#fca5a5' },
+      { name: 'Red', value: '#ef4444' },
+      { name: 'Dark Red', value: '#991b1b' },
+    ],
+  },
+  {
+    name: 'Yellow',
+    shades: [
+      { name: 'Light Yellow', value: '#fef9c3' },
+      { name: 'Yellow', value: '#FFD600' },
+      { name: 'Dark Yellow', value: '#b59f3b' },
+    ],
+  },
+  {
+    name: 'Brown',
+    shades: [
+      { name: 'Light Brown', value: '#d2b48c' },
+      { name: 'Brown', value: '#8B4513' },
+      { name: 'Dark Brown', value: '#5c4033' },
+    ],
+  },
+  {
+    name: 'Grey',
+    shades: [
+      { name: 'Light Grey', value: '#e5e7eb' },
+      { name: 'Grey', value: '#808080' },
+      { name: 'Dark Grey', value: '#374151' },
+    ],
+  },
+  {
+    name: 'Black/White',
+    shades: [
+      { name: 'White', value: '#FFFFFF' },
+      { name: 'Black', value: '#000000' },
+    ],
+  },
+];
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -518,6 +605,43 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 8,
   },
+  colorPickerGrid: {
+  marginVertical: 10,
+},
+colorGroup: {
+  marginBottom: 18,
+},
+groupLabel: {
+  fontWeight: 'bold',
+  fontSize: 15,
+  color: '#333',
+  marginBottom: 6,
+  marginLeft: 4,
+},
+shadeRow: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+},
+colorSwatch: {
+  alignItems: 'center',
+  margin: 8,
+},
+swatchCircle: {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  borderWidth: 2,
+  borderColor: '#eee',
+  marginBottom: 4,
+},
+selectedSwatch: {
+  borderColor: '#2563eb',
+  borderWidth: 2,
+},
+swatchLabel: {
+  fontSize: 12,
+  color: '#333',
+},
   
 });
 

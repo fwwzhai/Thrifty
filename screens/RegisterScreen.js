@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,12 +11,30 @@ import {
 import { auth, db } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
+import * as Google from 'expo-auth-session/providers/google';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  clientId: '1071829652113-k08j3l9hgbg53rr36jjseofcp13ieonu.apps.googleusercontent.com',
+});
+
+useEffect(() => {
+  if (response?.type === 'success') {
+    const { id_token } = response.params;
+    const credential = GoogleAuthProvider.credential(id_token);
+    signInWithCredential(auth, credential)
+      .then(userCredential => {
+        // Optionally create Firestore user doc if new
+        navigation.navigate('Home');
+      })
+      .catch(error => Alert.alert('Error', error.message));
+  }
+}, [response]);
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
@@ -83,6 +101,13 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       )}
+      <TouchableOpacity
+  style={[styles.button, { backgroundColor: '#fff', marginBottom: 10 }]}
+  onPress={() => promptAsync()}
+  disabled={!request}
+>
+  <Text style={[styles.buttonText, { color: '#007bff' }]}>Sign Up with Google</Text>
+</TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.loginText}>

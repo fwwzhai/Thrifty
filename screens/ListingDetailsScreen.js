@@ -230,8 +230,16 @@ return (
     </TouchableOpacity>
 
     <View style={styles.infoContainer}>
-      <Text style={styles.title}>{listing.name}</Text>
-      <Text style={styles.price}>RM {listing.price}</Text>
+      
+  <Text style={styles.title}>{listing.name}</Text>
+  <Text style={styles.price}>
+    RM {listing.price}
+    {listing.deliveryPaidBySeller
+      ? ' (Free Delivery)'
+      : listing.deliveryFee > 0
+        ? ` ( + Delivery: RM${listing.deliveryFee})`
+        : ''}
+  </Text>
       <Text style={styles.type}>Type: {listing.type}</Text>
       <Text style={styles.condition}>Condition: {listing.condition}</Text>
       <Text style={styles.description}>Description: {listing.description}</Text>
