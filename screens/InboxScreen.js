@@ -3,6 +3,9 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react
 import { auth, db } from '../firebaseConfig';
 import { collection, query, orderBy, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
+import { updateDoc } from 'firebase/firestore'; // Make sure this is imported
+
+
 
 const InboxScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -27,7 +30,13 @@ const InboxScreen = ({ navigation }) => {
     ]);
   };
 
-  const handlePress = (item) => {
+ 
+
+const handlePress = async (item) => {
+  if (!item.read) {
+    const msgRef = doc(db, 'users', auth.currentUser.uid, 'inbox', item.id);
+    await updateDoc(msgRef, { read: true });
+  }
   if (item.listingId && item.buyerId) {
     navigation.navigate('ManageOrder', { listingId: item.listingId, buyerId: item.buyerId });
   }
@@ -36,30 +45,51 @@ const InboxScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Inbox</Text>
+      <TouchableOpacity
+  style={{
+    alignSelf: 'flex-end',
+    backgroundColor: '#2563eb',
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    marginBottom: 12,
+  }}
+  onPress={async () => {
+    // Mark all unread messages as read
+    const unreadMessages = messages.filter(msg => !msg.read);
+    for (const msg of unreadMessages) {
+      const msgRef = doc(db, 'users', auth.currentUser.uid, 'inbox', msg.id);
+      await updateDoc(msgRef, { read: true });
+    }
+    Alert.alert('Done', 'All messages marked as read.');
+  }}
+>
+  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Mark All as Read</Text>
+</TouchableOpacity>
       <FlatList
         data={messages}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          item.message ? (
-            <TouchableOpacity
-              style={[styles.message, !item.read && styles.unread]}
-              onPress={() => handlePress(item)}
-              activeOpacity={0.7}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.text}>{item.message}</Text>
-                <Text style={styles.time}>
-                  {item.timestamp?.toDate
-                    ? item.timestamp.toDate().toLocaleString()
-                    : ''}
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
-                <Ionicons name="trash-outline" size={22} color="#ef4444" />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ) : null
-        )}
+  item.message ? (
+    <TouchableOpacity
+      style={[styles.message, !item.read && styles.unread]}
+      onPress={() => handlePress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={styles.text}>{item.message}</Text>
+        <Text style={styles.time}>
+          {item.timestamp?.toDate
+            ? item.timestamp.toDate().toLocaleString()
+            : ''}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
+        <Ionicons name="trash-outline" size={22} color="#ef4444" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ) : null
+)}
         ListEmptyComponent={<Text style={styles.empty}>No messages yet.</Text>}
       />
     </View>

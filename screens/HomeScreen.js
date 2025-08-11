@@ -5,6 +5,8 @@ import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { signOut, onAuthStateChanged  } from 'firebase/auth'; 
 import { Ionicons } from '@expo/vector-icons'; 
 
+
+
 const HomeScreen = ({ navigation, route }) => {
   const [listings, setListings] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,7 +105,28 @@ useEffect(() => {
   };
 }, [sortOrder, filters.showFollowing]);
 
-  
+const [unreadCount, setUnreadCount] = useState(0);
+
+useEffect(() => {
+  let unsubscribeInbox;
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const inboxRef = collection(db, 'users', user.uid, 'inbox');
+      unsubscribeInbox = onSnapshot(inboxRef, (snapshot) => {
+        const unread = snapshot.docs.filter(doc => doc.data().read === false).length;
+        setUnreadCount(unread);
+      });
+    } else {
+      setUnreadCount(0);
+      if (unsubscribeInbox) unsubscribeInbox();
+    }
+  });
+
+  return () => {
+    unsubscribeAuth();
+    if (unsubscribeInbox) unsubscribeInbox();
+  };
+}, []);
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -206,9 +229,14 @@ const matchesSize = (() => {
     <Image source={require('../assets/smallerbg.png')} style={styles.logo} />
     <Text style={styles.welcome}>Thrifty</Text>
   </View>
-  <TouchableOpacity style={styles.inboxButton} onPress={goToInbox}>
-    <Ionicons name="mail-outline" size={28} color="#2563eb" />
-  </TouchableOpacity>
+ <TouchableOpacity style={styles.inboxButton} onPress={goToInbox}>
+  <Ionicons name="mail-outline" size={28} color="#2563eb" />
+  {unreadCount > 0 && (
+    <View style={styles.badge}>
+      <Text style={styles.badgeText}>{unreadCount}</Text>
+    </View>
+  )}
+</TouchableOpacity>
 </View>
       <TextInput
         style={styles.searchBar}
@@ -434,6 +462,24 @@ welcome: {
     shadowRadius: 6,
     elevation: 6,
   },
+  badge: {
+  position: 'absolute',
+  top: -4,
+  right: -4,
+  backgroundColor: '#ef4444',
+  borderRadius: 10,
+  minWidth: 20,
+  height: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 4,
+  zIndex: 20,
+},
+badgeText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 12,
+},
   addButtonText: {
     color: '#fff',
     fontSize: 32,

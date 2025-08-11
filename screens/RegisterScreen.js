@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   Alert, 
   StyleSheet, 
-  ActivityIndicator 
+  ActivityIndicator, 
+  Image
 } from 'react-native';
 import { auth, db } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -18,43 +19,44 @@ const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verifyPassword, setVerifyPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-  clientId: '1071829652113-k08j3l9hgbg53rr36jjseofcp13ieonu.apps.googleusercontent.com',
-});
+    clientId: '1071829652113-k08j3l9hgbg53rr36jjseofcp13ieonu.apps.googleusercontent.com',
+  });
 
-useEffect(() => {
-  if (response?.type === 'success') {
-    const { id_token } = response.params;
-    const credential = GoogleAuthProvider.credential(id_token);
-    signInWithCredential(auth, credential)
-      .then(userCredential => {
-        // Optionally create Firestore user doc if new
-        navigation.navigate('Home');
-      })
-      .catch(error => Alert.alert('Error', error.message));
-  }
-}, [response]);
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential)
+        .then(userCredential => {
+          // Optionally create Firestore user doc if new
+          navigation.navigate('Home');
+        })
+        .catch(error => Alert.alert('Error', error.message));
+    }
+  }, [response]);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !verifyPassword) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
-
+    if (password !== verifyPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
     try {
       setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
-      // Store user details in Firestore
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: name,
         email: email,
         createdAt: new Date(),
       });
-      
       Alert.alert('Success', 'Account created successfully!');
       navigation.navigate('Login');
     } catch (error) {
@@ -93,6 +95,14 @@ useEffect(() => {
         onChangeText={setPassword}
         secureTextEntry
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Retype Password"
+        placeholderTextColor="#aaa"
+        value={verifyPassword}
+        onChangeText={setVerifyPassword}
+        secureTextEntry
+      />
 
       {loading ? (
         <ActivityIndicator size="large" color="#fff" style={styles.loader} />
@@ -102,12 +112,13 @@ useEffect(() => {
         </TouchableOpacity>
       )}
       <TouchableOpacity
-  style={[styles.button, { backgroundColor: '#fff', marginBottom: 10 }]}
-  onPress={() => promptAsync()}
-  disabled={!request}
->
-  <Text style={[styles.buttonText, { color: '#007bff' }]}>Sign Up with Google</Text>
-</TouchableOpacity>
+        style={[styles.button, { backgroundColor: '#fff', marginBottom: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }]}
+        onPress={() => promptAsync()}
+        disabled={!request}
+      >
+        <Image source={require('../assets/google.png')} style={styles.googleLogo} />
+        <Text style={[styles.buttonText, { color: '#007bff', marginLeft: 8 }]}>Sign Up with Google</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.loginText}>
@@ -173,6 +184,11 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
   },
+    googleLogo: {
+    width: 24,
+    height: 24,
+    marginRight: 4,
+  }
 });
 
 export default RegisterScreen;

@@ -102,7 +102,7 @@ const EditProfileScreen = () => {
       <Text style={styles.title}>Edit Profile</Text>
       <TouchableOpacity onPress={pickImage} style={styles.imageWrapper}>
         <Image
-          source={profileImage ? { uri: profileImage } : require('../assets/default-profile.png')}
+          source={profileImage ? { uri: profileImage } : require('../assets/defaultprofile.png')}
           style={styles.profileImage}
         />
         <View style={styles.cameraIcon}>

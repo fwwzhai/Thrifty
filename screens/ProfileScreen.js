@@ -131,7 +131,7 @@ const [isViewingPurchaseHistory, setIsViewingPurchaseHistory] = useState(true); 
       ListHeaderComponent={
         <View style={styles.profileHeader}>
           <Image 
-            source={userInfo.profileImage ? { uri: userInfo.profileImage } : require('../assets/default-profile.png')}
+            source={userInfo.profileImage ? { uri: userInfo.profileImage } : require('../assets/defaultprofile.png')}
             style={styles.profileImage}
           />
           <Text style={styles.name}>{userInfo.name}</Text>
